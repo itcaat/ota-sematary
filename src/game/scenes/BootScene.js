@@ -1,0 +1,579 @@
+import Phaser from 'phaser'
+
+export default class BootScene extends Phaser.Scene {
+  constructor() {
+    super('BootScene')
+  }
+
+  preload() {
+    this.createLoadingBar()
+    this.generateAssets()
+  }
+
+  createLoadingBar() {
+    const width = this.cameras.main.width
+    const height = this.cameras.main.height
+    
+    this.add.rectangle(width / 2, height / 2, width, height, 0x1a1a2e)
+    
+    this.loadingText = this.add.text(width / 2, height / 2 - 50, 'Загрузка...', {
+      fontFamily: 'monospace',
+      fontSize: '24px',
+      fill: '#ffffff'
+    }).setOrigin(0.5)
+    
+    const progressBox = this.add.graphics()
+    const progressBar = this.add.graphics()
+    
+    progressBox.fillStyle(0x222222, 0.8)
+    progressBox.fillRoundedRect(width / 2 - 160, height / 2, 320, 30, 10)
+    
+    this.load.on('progress', (value) => {
+      progressBar.clear()
+      progressBar.fillStyle(0x00ff88, 1)
+      progressBar.fillRoundedRect(width / 2 - 155, height / 2 + 5, 310 * value, 20, 8)
+    })
+  }
+
+  generateAssets() {
+    this.generatePlayerSprite()
+    this.generateZombieSprite()
+    this.generateGraveMound()
+    this.generateGraveyardSprites()
+    this.generatePrincessSprite()
+    this.generateBeerSprite()
+    this.generateTiles()
+    this.generateParticles()
+  }
+
+  generatePlayerSprite() {
+    // Персонаж сверху - 4 направления
+    const directions = ['down', 'up', 'left', 'right']
+    
+    directions.forEach(dir => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 32
+      canvas.height = 32
+      const ctx = canvas.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      
+      this.drawTopDownPlayer(ctx, dir)
+      this.textures.addCanvas(`player_${dir}`, canvas)
+    })
+    
+    // Дефолтный спрайт
+    const defaultCanvas = document.createElement('canvas')
+    defaultCanvas.width = 32
+    defaultCanvas.height = 32
+    const defaultCtx = defaultCanvas.getContext('2d')
+    defaultCtx.imageSmoothingEnabled = false
+    this.drawTopDownPlayer(defaultCtx, 'down')
+    this.textures.addCanvas('player', defaultCanvas)
+  }
+
+  drawTopDownPlayer(ctx, direction) {
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.ellipse(16, 28, 10, 4, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Тело (футболка сверху)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(8, 10, 16, 14)
+    
+    // Контур футболки
+    ctx.strokeStyle = '#cccccc'
+    ctx.lineWidth = 1
+    ctx.strokeRect(8, 10, 16, 14)
+    
+    // Надпись SALO
+    ctx.fillStyle = '#ff0000'
+    ctx.font = 'bold 6px monospace'
+    ctx.fillText('SALO', 9, 20)
+    
+    // Голова
+    ctx.fillStyle = '#ffcc99'
+    
+    if (direction === 'down') {
+      ctx.fillRect(10, 2, 12, 10)
+      // Волосы
+      ctx.fillStyle = '#4a3728'
+      ctx.fillRect(10, 1, 12, 4)
+      // Глаза
+      ctx.fillStyle = '#000'
+      ctx.fillRect(12, 6, 2, 2)
+      ctx.fillRect(18, 6, 2, 2)
+    } else if (direction === 'up') {
+      ctx.fillRect(10, 2, 12, 10)
+      // Волосы (вид сзади)
+      ctx.fillStyle = '#4a3728'
+      ctx.fillRect(10, 1, 12, 6)
+    } else if (direction === 'left') {
+      ctx.fillRect(8, 2, 12, 10)
+      ctx.fillStyle = '#4a3728'
+      ctx.fillRect(8, 1, 12, 4)
+      ctx.fillStyle = '#000'
+      ctx.fillRect(10, 6, 2, 2)
+    } else if (direction === 'right') {
+      ctx.fillRect(12, 2, 12, 10)
+      ctx.fillStyle = '#4a3728'
+      ctx.fillRect(12, 1, 12, 4)
+      ctx.fillStyle = '#000'
+      ctx.fillRect(20, 6, 2, 2)
+    }
+    
+    // Ноги (вид сверху - ботинки)
+    ctx.fillStyle = '#3b5998'
+    if (direction === 'down' || direction === 'up') {
+      ctx.fillRect(9, 24, 5, 6)
+      ctx.fillRect(18, 24, 5, 6)
+    } else {
+      ctx.fillRect(12, 24, 8, 6)
+    }
+    
+    // Обувь
+    ctx.fillStyle = '#2d2d2d'
+    if (direction === 'down') {
+      ctx.fillRect(9, 28, 5, 3)
+      ctx.fillRect(18, 28, 5, 3)
+    }
+  }
+
+  generateZombieSprite() {
+    const directions = ['down', 'up', 'left', 'right']
+    
+    directions.forEach(dir => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 32
+      canvas.height = 32
+      const ctx = canvas.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      
+      this.drawTopDownZombie(ctx, dir)
+      this.textures.addCanvas(`zombie_${dir}`, canvas)
+    })
+    
+    // Дефолтный спрайт
+    const defaultCanvas = document.createElement('canvas')
+    defaultCanvas.width = 32
+    defaultCanvas.height = 32
+    const defaultCtx = defaultCanvas.getContext('2d')
+    defaultCtx.imageSmoothingEnabled = false
+    this.drawTopDownZombie(defaultCtx, 'down')
+    this.textures.addCanvas('zombie', defaultCanvas)
+  }
+
+  drawTopDownZombie(ctx, direction) {
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.ellipse(16, 28, 10, 4, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Тело (рваная одежда)
+    ctx.fillStyle = '#4a6741'  // Зеленоватый
+    ctx.fillRect(8, 10, 16, 14)
+    
+    // Рваные края одежды
+    ctx.fillStyle = '#3d5636'
+    ctx.fillRect(8, 22, 3, 3)
+    ctx.fillRect(21, 20, 3, 4)
+    ctx.fillRect(12, 23, 2, 2)
+    
+    // Голова (зелёная кожа)
+    ctx.fillStyle = '#7cb342'
+    
+    if (direction === 'down') {
+      ctx.fillRect(10, 2, 12, 10)
+      // Редкие волосы
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(11, 1, 3, 3)
+      ctx.fillRect(18, 2, 2, 2)
+      // Глаза (красные, злые)
+      ctx.fillStyle = '#ff0000'
+      ctx.fillRect(12, 5, 3, 3)
+      ctx.fillRect(17, 5, 3, 3)
+      // Зрачки
+      ctx.fillStyle = '#000'
+      ctx.fillRect(13, 6, 1, 1)
+      ctx.fillRect(18, 6, 1, 1)
+      // Рот
+      ctx.fillStyle = '#1b5e20'
+      ctx.fillRect(13, 9, 6, 2)
+    } else if (direction === 'up') {
+      ctx.fillRect(10, 2, 12, 10)
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(10, 1, 12, 4)
+    } else if (direction === 'left') {
+      ctx.fillRect(8, 2, 12, 10)
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(8, 1, 10, 3)
+      ctx.fillStyle = '#ff0000'
+      ctx.fillRect(10, 5, 3, 3)
+    } else if (direction === 'right') {
+      ctx.fillRect(12, 2, 12, 10)
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(14, 1, 10, 3)
+      ctx.fillStyle = '#ff0000'
+      ctx.fillRect(19, 5, 3, 3)
+    }
+    
+    // Руки (вытянуты вперёд для зомби)
+    ctx.fillStyle = '#7cb342'
+    if (direction === 'down') {
+      ctx.fillRect(5, 12, 4, 10)
+      ctx.fillRect(23, 12, 4, 10)
+    } else if (direction === 'up') {
+      ctx.fillRect(6, 8, 4, 8)
+      ctx.fillRect(22, 8, 4, 8)
+    } else if (direction === 'left') {
+      ctx.fillRect(2, 10, 8, 4)
+    } else if (direction === 'right') {
+      ctx.fillRect(22, 10, 8, 4)
+    }
+    
+    // Ноги
+    ctx.fillStyle = '#5d4037'
+    if (direction === 'down' || direction === 'up') {
+      ctx.fillRect(9, 24, 5, 6)
+      ctx.fillRect(18, 24, 5, 6)
+    } else {
+      ctx.fillRect(12, 24, 8, 6)
+    }
+  }
+
+  generateGraveMound() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 48
+    canvas.height = 32
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.ellipse(24, 28, 22, 6, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Холмик земли (овальная форма)
+    ctx.fillStyle = '#3e2723'
+    ctx.beginPath()
+    ctx.ellipse(24, 24, 20, 10, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Верхняя часть холмика (светлее)
+    ctx.fillStyle = '#5d4037'
+    ctx.beginPath()
+    ctx.ellipse(24, 22, 18, 8, 0, 0, Math.PI)
+    ctx.fill()
+    
+    // Текстура земли - комочки
+    ctx.fillStyle = '#4e342e'
+    for (let i = 0; i < 8; i++) {
+      const x = 10 + Math.random() * 28
+      const y = 18 + Math.random() * 10
+      ctx.fillRect(x, y, 3, 2)
+    }
+    
+    // Трава на холмике
+    ctx.fillStyle = '#2e7d32'
+    ctx.fillRect(8, 20, 2, 4)
+    ctx.fillRect(14, 18, 2, 5)
+    ctx.fillRect(32, 19, 2, 4)
+    ctx.fillRect(38, 21, 2, 3)
+    
+    // Цветочек (опционально)
+    ctx.fillStyle = '#ffeb3b'
+    ctx.fillRect(22, 16, 3, 3)
+    ctx.fillStyle = '#4caf50'
+    ctx.fillRect(23, 19, 1, 4)
+    
+    this.textures.addCanvas('mound', canvas)
+  }
+
+  generateGraveyardSprites() {
+    // Крест (вид сверху)
+    const crossCanvas = document.createElement('canvas')
+    crossCanvas.width = 32
+    crossCanvas.height = 32
+    const cCtx = crossCanvas.getContext('2d')
+    cCtx.imageSmoothingEnabled = false
+    
+    // Тень
+    cCtx.fillStyle = 'rgba(0,0,0,0.4)'
+    cCtx.beginPath()
+    cCtx.ellipse(16, 28, 12, 4, 0, 0, Math.PI * 2)
+    cCtx.fill()
+    
+    // Вертикальная часть
+    cCtx.fillStyle = '#5d4037'
+    cCtx.fillRect(13, 4, 6, 24)
+    
+    // Горизонтальная часть
+    cCtx.fillRect(4, 8, 24, 6)
+    
+    // Светлые грани
+    cCtx.fillStyle = '#8d6e63'
+    cCtx.fillRect(13, 4, 6, 2)
+    cCtx.fillRect(4, 8, 24, 2)
+    
+    this.textures.addCanvas('cross', crossCanvas)
+    
+    // Надгробие (вид сверху)
+    const tombCanvas = document.createElement('canvas')
+    tombCanvas.width = 32
+    tombCanvas.height = 32
+    const tCtx = tombCanvas.getContext('2d')
+    tCtx.imageSmoothingEnabled = false
+    
+    // Тень
+    tCtx.fillStyle = 'rgba(0,0,0,0.4)'
+    tCtx.beginPath()
+    tCtx.ellipse(16, 28, 10, 4, 0, 0, Math.PI * 2)
+    tCtx.fill()
+    
+    // Камень
+    tCtx.fillStyle = '#607d8b'
+    tCtx.beginPath()
+    tCtx.moveTo(6, 28)
+    tCtx.lineTo(8, 8)
+    tCtx.quadraticCurveTo(16, 2, 24, 8)
+    tCtx.lineTo(26, 28)
+    tCtx.closePath()
+    tCtx.fill()
+    
+    // Светлая грань
+    tCtx.fillStyle = '#78909c'
+    tCtx.beginPath()
+    tCtx.moveTo(6, 28)
+    tCtx.lineTo(8, 8)
+    tCtx.quadraticCurveTo(16, 2, 16, 8)
+    tCtx.lineTo(16, 28)
+    tCtx.closePath()
+    tCtx.fill()
+    
+    this.textures.addCanvas('tombstone', tombCanvas)
+  }
+
+  generatePrincessSprite() {
+    const directions = ['down', 'up', 'left', 'right']
+    
+    directions.forEach(dir => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 32
+      canvas.height = 32
+      const ctx = canvas.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      
+      this.drawTopDownPrincess(ctx, dir)
+      this.textures.addCanvas(`princess_${dir}`, canvas)
+    })
+    
+    const defaultCanvas = document.createElement('canvas')
+    defaultCanvas.width = 32
+    defaultCanvas.height = 32
+    const defaultCtx = defaultCanvas.getContext('2d')
+    defaultCtx.imageSmoothingEnabled = false
+    this.drawTopDownPrincess(defaultCtx, 'down')
+    this.textures.addCanvas('princess', defaultCanvas)
+  }
+
+  drawTopDownPrincess(ctx, direction) {
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.ellipse(16, 28, 10, 4, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Платье (вид сверху - круглое)
+    ctx.fillStyle = '#e91e63'
+    ctx.beginPath()
+    ctx.ellipse(16, 20, 12, 10, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Детали платья
+    ctx.fillStyle = '#c2185b'
+    ctx.beginPath()
+    ctx.ellipse(16, 20, 8, 6, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Голова
+    ctx.fillStyle = '#ffcc99'
+    ctx.beginPath()
+    ctx.arc(16, 8, 6, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Волосы
+    ctx.fillStyle = '#ffd54f'
+    if (direction === 'down') {
+      ctx.beginPath()
+      ctx.arc(16, 7, 6, Math.PI, 0)
+      ctx.fill()
+      ctx.fillRect(10, 7, 3, 8)
+      ctx.fillRect(19, 7, 3, 8)
+      // Глаза
+      ctx.fillStyle = '#000'
+      ctx.fillRect(13, 8, 2, 2)
+      ctx.fillRect(17, 8, 2, 2)
+    } else if (direction === 'up') {
+      ctx.beginPath()
+      ctx.arc(16, 8, 6, 0, Math.PI * 2)
+      ctx.fill()
+    } else {
+      ctx.beginPath()
+      ctx.arc(16, 7, 6, Math.PI, 0)
+      ctx.fill()
+      if (direction === 'left') {
+        ctx.fillRect(10, 7, 3, 8)
+      } else {
+        ctx.fillRect(19, 7, 3, 8)
+      }
+    }
+    
+    // Корона
+    ctx.fillStyle = '#ffc107'
+    ctx.fillRect(12, 1, 8, 3)
+    ctx.fillRect(13, 0, 2, 2)
+    ctx.fillRect(17, 0, 2, 2)
+    
+    // Камень на короне
+    ctx.fillStyle = '#e91e63'
+    ctx.fillRect(15, 1, 2, 2)
+  }
+
+  generateBeerSprite() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 24
+    canvas.height = 24
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.ellipse(12, 22, 6, 2, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Бутылка
+    ctx.fillStyle = '#4a2c00'
+    ctx.fillRect(9, 6, 6, 14)
+    
+    // Горлышко
+    ctx.fillRect(10, 2, 4, 5)
+    
+    // Этикетка
+    ctx.fillStyle = '#f5f5dc'
+    ctx.fillRect(9, 10, 6, 6)
+    
+    // Надпись на этикетке
+    ctx.fillStyle = '#ff0000'
+    ctx.fillRect(10, 12, 4, 2)
+    
+    // Пробка
+    ctx.fillStyle = '#8b4513'
+    ctx.fillRect(10, 1, 4, 2)
+    
+    // Блик
+    ctx.fillStyle = 'rgba(255,255,255,0.3)'
+    ctx.fillRect(13, 6, 2, 10)
+    
+    this.textures.addCanvas('beer', canvas)
+  }
+
+  generateTiles() {
+    // Трава
+    const grassCanvas = document.createElement('canvas')
+    grassCanvas.width = 32
+    grassCanvas.height = 32
+    const gCtx = grassCanvas.getContext('2d')
+    gCtx.imageSmoothingEnabled = false
+    
+    gCtx.fillStyle = '#2d5016'
+    gCtx.fillRect(0, 0, 32, 32)
+    
+    // Детали травы
+    for (let i = 0; i < 20; i++) {
+      gCtx.fillStyle = `rgba(60, 100, 30, ${0.3 + Math.random() * 0.4})`
+      gCtx.fillRect(Math.random() * 30, Math.random() * 30, 2, 2)
+    }
+    
+    // Травинки
+    gCtx.fillStyle = '#3d6b1e'
+    for (let i = 0; i < 8; i++) {
+      const x = Math.random() * 28
+      const y = Math.random() * 28
+      gCtx.fillRect(x, y, 1, 3)
+    }
+    
+    this.textures.addCanvas('grass', grassCanvas)
+    
+    // Дорожка
+    const pathCanvas = document.createElement('canvas')
+    pathCanvas.width = 32
+    pathCanvas.height = 32
+    const pCtx = pathCanvas.getContext('2d')
+    pCtx.imageSmoothingEnabled = false
+    
+    pCtx.fillStyle = '#5d4e37'
+    pCtx.fillRect(0, 0, 32, 32)
+    
+    // Камешки
+    for (let i = 0; i < 10; i++) {
+      pCtx.fillStyle = `rgba(80, 70, 55, ${0.5 + Math.random() * 0.5})`
+      pCtx.fillRect(Math.random() * 28, Math.random() * 28, 3, 3)
+    }
+    
+    this.textures.addCanvas('path', pathCanvas)
+    
+    // Забор
+    const fenceCanvas = document.createElement('canvas')
+    fenceCanvas.width = 32
+    fenceCanvas.height = 32
+    const fCtx = fenceCanvas.getContext('2d')
+    fCtx.imageSmoothingEnabled = false
+    
+    fCtx.fillStyle = '#3e2723'
+    fCtx.fillRect(0, 12, 32, 8)
+    fCtx.fillRect(4, 8, 4, 16)
+    fCtx.fillRect(14, 8, 4, 16)
+    fCtx.fillRect(24, 8, 4, 16)
+    
+    // Светлые грани
+    fCtx.fillStyle = '#5d4037'
+    fCtx.fillRect(0, 12, 32, 2)
+    fCtx.fillRect(4, 8, 4, 2)
+    fCtx.fillRect(14, 8, 4, 2)
+    fCtx.fillRect(24, 8, 4, 2)
+    
+    this.textures.addCanvas('fence', fenceCanvas)
+  }
+
+  generateParticles() {
+    const particleCanvas = document.createElement('canvas')
+    particleCanvas.width = 8
+    particleCanvas.height = 8
+    const pCtx = particleCanvas.getContext('2d')
+    
+    pCtx.fillStyle = '#ffffff'
+    pCtx.fillRect(0, 0, 8, 8)
+    
+    this.textures.addCanvas('particle', particleCanvas)
+    
+    const sparkCanvas = document.createElement('canvas')
+    sparkCanvas.width = 4
+    sparkCanvas.height = 4
+    const sCtx = sparkCanvas.getContext('2d')
+    
+    sCtx.fillStyle = '#ffffff'
+    sCtx.beginPath()
+    sCtx.arc(2, 2, 2, 0, Math.PI * 2)
+    sCtx.fill()
+    
+    this.textures.addCanvas('spark', sparkCanvas)
+  }
+
+  create() {
+    this.scene.start('MainScene')
+  }
+}
