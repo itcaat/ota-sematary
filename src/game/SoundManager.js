@@ -362,6 +362,49 @@ export default class SoundManager {
     }
   }
 
+  // Звук исцеления (аптечка)
+  playHeal() {
+    if (!this.enabled) return
+    this.resume()
+    
+    // Восходящий приятный звук
+    const osc = this.audioContext.createOscillator()
+    const gain = this.audioContext.createGain()
+    
+    osc.connect(gain)
+    gain.connect(this.audioContext.destination)
+    
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(400, this.audioContext.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.2)
+    osc.frequency.exponentialRampToValueAtTime(1200, this.audioContext.currentTime + 0.4)
+    
+    gain.gain.setValueAtTime(this.volume * 0.4, this.audioContext.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5)
+    
+    osc.start()
+    osc.stop(this.audioContext.currentTime + 0.5)
+    
+    // Второй тон - гармония
+    setTimeout(() => {
+      const osc2 = this.audioContext.createOscillator()
+      const gain2 = this.audioContext.createGain()
+      
+      osc2.connect(gain2)
+      gain2.connect(this.audioContext.destination)
+      
+      osc2.type = 'sine'
+      osc2.frequency.setValueAtTime(600, this.audioContext.currentTime)
+      osc2.frequency.exponentialRampToValueAtTime(1000, this.audioContext.currentTime + 0.3)
+      
+      gain2.gain.setValueAtTime(this.volume * 0.3, this.audioContext.currentTime)
+      gain2.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4)
+      
+      osc2.start()
+      osc2.stop(this.audioContext.currentTime + 0.4)
+    }, 100)
+  }
+
   // Звук обнаружения (зомби увидел)
   playAlert() {
     if (!this.enabled) return

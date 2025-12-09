@@ -16,6 +16,7 @@ export default class MainScene extends Phaser.Scene {
     this.onGameComplete = data.onGameComplete || (() => {})
     this.collectedItems = 0
     this.gameComplete = false
+    this.officeUnlocked = false
   }
 
   create() {
@@ -123,7 +124,7 @@ export default class MainScene extends Phaser.Scene {
     const buildingConfigs = [
       { type: 'selectel', x: 200, y: 190, name: 'Датацентр Selectel', width: 200, height: 180 },
       { type: 'yandex', x: 1400, y: 190, name: 'Датацентр Yandex', width: 200, height: 180 },
-      { type: 'office', x: 800, y: 1000, name: 'Офис OTA', width: 220, height: 200 },
+      { type: 'office', x: 800, y: 1000, name: 'SALO OFFICE', width: 220, height: 200 },
     ]
     
     buildingConfigs.forEach(config => {
@@ -212,6 +213,161 @@ export default class MainScene extends Phaser.Scene {
       strokeThickness: 3,
       shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 0, fill: true }
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setAlpha(0)
+    
+    // Находим офис и блокируем его
+    this.officeBuilding = this.buildings.find(b => b.buildingType === 'office')
+    if (this.officeBuilding) {
+      // Создаём блокирующую дверь
+      this.officeDoor = this.add.rectangle(
+        this.officeBuilding.x, 
+        this.officeBuilding.y + this.officeBuilding.buildingHeight/2 - 7,
+        50, 14, 0x8b0000
+      )
+      this.officeDoor.setDepth(5)
+      this.physics.add.existing(this.officeDoor, true)
+      
+      // Текст "ЗАКРЫТО"
+      this.officeDoorText = this.add.text(
+        this.officeBuilding.x,
+        this.officeBuilding.y + this.officeBuilding.buildingHeight/2 - 7,
+        '🔒 ЗАКРЫТО',
+        {
+          fontFamily: 'monospace',
+          fontSize: '10px',
+          fill: '#ffffff',
+          stroke: '#000000',
+          strokeThickness: 2
+        }
+      ).setOrigin(0.5).setDepth(6)
+      
+      // Коллизия с закрытой дверью добавляется в createPlayer после создания игрока
+    }
+    
+    // Аптечки в датацентрах
+    this.medkits = this.physics.add.group()
+    
+    const datacenters = this.buildings.filter(b => b.buildingType === 'selectel' || b.buildingType === 'yandex')
+    datacenters.forEach(dc => {
+      // Размещаем аптечку внутри датацентра
+      const medkit = this.medkits.create(dc.x + 60, dc.y + 40, 'medkit')
+      medkit.setDepth(5)
+      medkit.body.setAllowGravity(false)
+      
+      // Эффект свечения
+      this.tweens.add({
+        targets: medkit,
+        alpha: 0.6,
+        duration: 500,
+        yoyo: true,
+        repeat: -1
+      })
+    })
+    
+    // Коллизия игрока с аптечками
+    this.physics.add.overlap(this.player, this.medkits, this.collectMedkit, null, this)
+  }
+  
+  collectMedkit(player, medkit) {
+    // Эффект подбора
+    this.tweens.add({
+      targets: medkit,
+      scale: 1.5,
+      alpha: 0,
+      duration: 200,
+      onComplete: () => medkit.destroy()
+    })
+    
+    // Восстанавливаем здоровье
+    const healAmount = 50
+    this.playerHealth = Math.min(100, this.playerHealth + healAmount)
+    this.healthText.setText(`❤️ ${this.playerHealth}`)
+    
+    // Обновляем цвет здоровья
+    if (this.playerHealth > 60) {
+      this.healthText.setFill('#00ff00')
+    } else if (this.playerHealth > 30) {
+      this.healthText.setFill('#ffff00')
+    }
+    
+    // Визуальный эффект исцеления
+    this.player.setTint(0x00ff00)
+    this.time.delayedCall(300, () => {
+      this.player.clearTint()
+    })
+    
+    // Эффект частиц
+    for (let i = 0; i < 10; i++) {
+      const particle = this.add.circle(
+        medkit.x + Phaser.Math.Between(-20, 20),
+        medkit.y + Phaser.Math.Between(-20, 20),
+        4, 0x00ff00
+      )
+      particle.setDepth(100)
+      this.tweens.add({
+        targets: particle,
+        y: particle.y - 30,
+        alpha: 0,
+        duration: 500,
+        onComplete: () => particle.destroy()
+      })
+    }
+    
+    // Звук исцеления
+    this.sound.playHeal()
+    
+    // Текст +HP
+    const healText = this.add.text(player.x, player.y - 30, `+${healAmount} HP`, {
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      fill: '#00ff00',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(100)
+    
+    this.tweens.add({
+      targets: healText,
+      y: healText.y - 30,
+      alpha: 0,
+      duration: 1000,
+      onComplete: () => healText.destroy()
+    })
+  }
+  
+  unlockOffice() {
+    if (!this.officeBuilding || !this.officeDoor) return
+    
+    // Удаляем дверь
+    this.officeDoor.destroy()
+    this.officeDoorText.destroy()
+    
+    // Удаляем коллизию
+    if (this.officeDoorCollider) {
+      this.officeDoorCollider.destroy()
+    }
+    
+    // Эффект открытия
+    this.cameras.main.flash(500, 0, 255, 0)
+    
+    // Уведомление
+    const unlockText = this.add.text(400, 300, '🔓 ОФИС ОТКРЫТ!\n👸 Принцесса ждёт тебя!', {
+      fontFamily: 'monospace',
+      fontSize: '20px',
+      fill: '#00ff00',
+      stroke: '#000000',
+      strokeThickness: 4,
+      align: 'center'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
+    
+    this.tweens.add({
+      targets: unlockText,
+      scale: 1.2,
+      alpha: 0,
+      duration: 3000,
+      onComplete: () => unlockText.destroy()
+    })
+    
+    // Показываем принцессу в офисе
+    this.showPrincess()
   }
 
   createPlayer() {
@@ -230,6 +386,11 @@ export default class MainScene extends Phaser.Scene {
         this.physics.add.collider(this.player, wall)
       })
     })
+    
+    // Коллизия с закрытой дверью офиса
+    if (this.officeDoor) {
+      this.officeDoorCollider = this.physics.add.collider(this.player, this.officeDoor)
+    }
     
     // Текст OTAOPS над игроком
     this.saloText = this.add.text(0, 0, 'OTAOPS', {
@@ -1104,9 +1265,10 @@ export default class MainScene extends Phaser.Scene {
       yoyo: true
     })
     
-    // Проверяем завершение
-    if (this.collectedItems >= this.totalItems) {
-      this.showPrincess()
+    // Проверяем завершение - открываем офис когда все серверы уничтожены
+    if (this.collectedItems >= this.totalItems && !this.officeUnlocked) {
+      this.officeUnlocked = true
+      this.unlockOffice()
     }
   }
 
@@ -1143,15 +1305,15 @@ export default class MainScene extends Phaser.Scene {
   }
 
   createPrincess() {
-    // Принцесса в правом нижнем углу карты
-    this.princess = this.physics.add.sprite(1400, 1000, 'princess')
+    // Принцесса внутри офиса (офис x:800, y:1000)
+    this.princess = this.physics.add.sprite(800, 980, 'princess')
     this.princess.setOrigin(0.5, 0.5)
     this.princess.body.setImmovable(true)
     this.princess.setVisible(false)
     this.princess.setDepth(10)
     
     // Свечение вокруг принцессы
-    this.princessGlow = this.add.circle(1400, 1000, 50, 0xff69b4, 0.3)
+    this.princessGlow = this.add.circle(800, 980, 50, 0xff69b4, 0.3)
     this.princessGlow.setVisible(false)
     this.princessGlow.setDepth(9)
     

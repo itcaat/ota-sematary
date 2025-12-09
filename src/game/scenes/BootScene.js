@@ -42,6 +42,7 @@ export default class BootScene extends Phaser.Scene {
     this.generateFriendlyNPCSprite()
     this.generateServerSprite()
     this.generateBuildingSprites()
+    this.generateMedkitSprite()
     this.generateGraveMound()
     this.generateGraveyardSprites()
     this.generatePrincessSprite()
@@ -736,6 +737,42 @@ export default class BootScene extends Phaser.Scene {
     this.textures.addCanvas('building_yandex', canvas)
   }
 
+  generateMedkitSprite() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 28
+    canvas.height = 28
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'
+    ctx.fillRect(4, 22, 22, 6)
+    
+    // Белый корпус аптечки
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(2, 4, 24, 18)
+    
+    // Красный крест
+    ctx.fillStyle = '#ff0000'
+    ctx.fillRect(11, 6, 6, 14) // вертикальная часть
+    ctx.fillRect(6, 9, 16, 6)  // горизонтальная часть
+    
+    // Рамка
+    ctx.strokeStyle = '#cc0000'
+    ctx.lineWidth = 2
+    ctx.strokeRect(2, 4, 24, 18)
+    
+    // Блик
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'
+    ctx.fillRect(4, 6, 8, 4)
+    
+    // Ручка сверху
+    ctx.fillStyle = '#dddddd'
+    ctx.fillRect(10, 2, 8, 4)
+    
+    this.textures.addCanvas('medkit', canvas)
+  }
+
   createOfficeBuilding() {
     const canvas = document.createElement('canvas')
     canvas.width = 220
@@ -857,7 +894,7 @@ export default class BootScene extends Phaser.Scene {
     ctx.fillStyle = '#ffffff'
     ctx.font = 'bold 11px monospace'
     ctx.textAlign = 'center'
-    ctx.fillText('OTA OFFICE', 110, 191)
+    ctx.fillText('SALO OFFICE', 110, 191)
     
     this.textures.addCanvas('building_office', canvas)
   }
