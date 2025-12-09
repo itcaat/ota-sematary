@@ -303,6 +303,26 @@ export default class MainScene extends Phaser.Scene {
     ]
     
     serverPositions.forEach((pos, i) => {
+      // Светящийся ореол под сервером
+      const glow = this.add.ellipse(
+        this.selectelDC.x + pos.x,
+        this.selectelDC.y + pos.y + 10,
+        35, 20,
+        0x00ff00, 0.5
+      )
+      glow.setDepth(5)
+      
+      // Анимация свечения
+      this.tweens.add({
+        targets: glow,
+        alpha: 0.2,
+        scaleX: 1.3,
+        scaleY: 1.3,
+        duration: 600 + i * 50,
+        yoyo: true,
+        repeat: -1
+      })
+      
       const server = this.transferServers.create(
         this.selectelDC.x + pos.x,
         this.selectelDC.y + pos.y,
@@ -312,12 +332,17 @@ export default class MainScene extends Phaser.Scene {
       server.body.setAllowGravity(false)
       server.setScale(0.8)
       server.serverId = i
+      server.glow = glow // Сохраняем ссылку на свечение
       
-      // Мигание
+      // Зелёный тинт для выделения
+      server.setTint(0x88ff88)
+      
+      // Пульсация сервера
       this.tweens.add({
         targets: server,
-        alpha: 0.7,
-        duration: 500 + i * 100,
+        scaleX: 0.85,
+        scaleY: 0.85,
+        duration: 400 + i * 50,
         yoyo: true,
         repeat: -1
       })
@@ -378,6 +403,11 @@ export default class MainScene extends Phaser.Scene {
     if (this.carryingServer) return
     
     this.carryingServer = true
+    
+    // Уничтожаем свечение
+    if (server.glow) {
+      server.glow.destroy()
+    }
     server.destroy()
     
     // Показываем что несём
