@@ -104,11 +104,11 @@ export default class MainScene extends Phaser.Scene {
     // Коллизия со стенами
     this.physics.add.collider(this.player, this.walls)
     
-    // Текст SALO над игроком
-    this.saloText = this.add.text(0, 0, 'SALO', {
+    // Текст OTAOPS над игроком
+    this.saloText = this.add.text(0, 0, 'OTAOPS', {
       fontFamily: 'monospace',
       fontSize: '8px',
-      fill: '#ff0000',
+      fill: '#00ff00',
       stroke: '#000000',
       strokeThickness: 2
     }).setOrigin(0.5).setDepth(100)
@@ -631,18 +631,34 @@ export default class MainScene extends Phaser.Scene {
   }
 
   createGraveyardItems() {
+    this.servers = this.physics.add.group()
     this.graves = this.physics.add.group()
     
-    const graveTexts = [
+    // Названия сервисов
+    const serviceNames = [
       "zabbix", "telegraf", "openvpn", "gmail",
       "grafana", "vagrant", "named", "l2-vpn",
       "firezone", "gitlab", "kafka", "airflow",
       "prometheus", "mobile app", "parser", "redash"
     ]
     
-    // Расположение могил по всей карте (16 штук)
+    // Эпитафии для могил
+    this.epitaphs = [
+      "Покойся с миром 🙏",
+      "Ты был лучшим сервером",
+      "Навеки в логах",
+      "F in chat",
+      "Ушёл, но не забыт",
+      "До свидания, дружок",
+      "Вечный uptime на небесах",
+      "Больше нет 500 ошибок",
+      "Теперь он в облаке ☁️",
+      "Спи спокойно, сервер"
+    ]
+    
+    // Расположение серверов по всей карте (16 штук)
     const positions = [
-      // Левая часть кладбища
+      // Левая часть
       { x: 300, y: 200 }, { x: 450, y: 200 },
       { x: 300, y: 400 }, { x: 450, y: 400 },
       // Центральная часть
@@ -654,37 +670,132 @@ export default class MainScene extends Phaser.Scene {
       { x: 1100, y: 500 }, { x: 1250, y: 500 },
       { x: 1100, y: 750 }, { x: 1250, y: 750 },
     ]
-    
+
     positions.forEach((pos, index) => {
-      // Холмик земли под крестом/надгробием
-      const mound = this.add.image(pos.x, pos.y + 12, 'mound')
-      mound.setOrigin(0.5, 0.5)
-      mound.setDepth(3)
+      const server = this.servers.create(pos.x, pos.y, 'server')
+      server.setOrigin(0.5, 0.5)
+      server.body.setImmovable(true)
+      server.body.setSize(24, 32)
+      server.setDepth(5)
       
-      const isCross = index % 2 === 0
-      const grave = this.graves.create(pos.x, pos.y, isCross ? 'cross' : 'tombstone')
-      grave.setOrigin(0.5, 0.5)
-      grave.body.setImmovable(true)
-      grave.body.setSize(24, 24)
-      grave.setDepth(5)
+      // Сохраняем название сервиса
+      server.serviceName = serviceNames[index]
       
-      // Сохраняем ссылку на холмик
-      grave.mound = mound
-      
-      // Текст над могилой
-      const text = this.add.text(pos.x, pos.y - 25, graveTexts[index], {
+      // Текст над сервером
+      const text = this.add.text(pos.x, pos.y - 30, serviceNames[index], {
         fontFamily: 'monospace',
         fontSize: '10px',
-        fill: '#ffffff',
+        fill: '#4caf50',
         backgroundColor: 'rgba(0,0,0,0.7)',
         padding: { x: 4, y: 2 }
       }).setOrigin(0.5).setDepth(6)
       
-      this.textObjects.push({ sprite: grave, text })
+      server.label = text
+      
+      // Мигание LED
+      this.tweens.add({
+        targets: server,
+        alpha: 0.9,
+        duration: 500 + Math.random() * 500,
+        yoyo: true,
+        repeat: -1
+      })
     })
     
-    // Коллизия с могилами
-    this.physics.add.overlap(this.player, this.graves, this.destroyGrave, null, this)
+    // Коллизия с серверами
+    this.physics.add.overlap(this.player, this.servers, this.killServer, null, this)
+  }
+
+  killServer(player, server) {
+    if (this.gameComplete) return
+    
+    const x = server.x
+    const y = server.y
+    const serviceName = server.serviceName
+    
+    // Удаляем текст сервера
+    if (server.label) {
+      server.label.destroy()
+    }
+    
+    // Удаляем сервер
+    server.destroy()
+    
+    // Создаём могилку на месте сервера
+    const mound = this.add.image(x, y + 12, 'mound')
+    mound.setOrigin(0.5, 0.5)
+    mound.setDepth(3)
+    
+    const isCross = Math.random() > 0.5
+    const grave = this.add.image(x, y, isCross ? 'cross' : 'tombstone')
+    grave.setOrigin(0.5, 0.5)
+    grave.setDepth(5)
+    
+    // Рандомная эпитафия
+    const epitaph = this.epitaphs[Phaser.Math.Between(0, this.epitaphs.length - 1)]
+    
+    // Текст с названием сервиса и эпитафией
+    const graveText = this.add.text(x, y - 35, `${serviceName}\n${epitaph}`, {
+      fontFamily: 'monospace',
+      fontSize: '8px',
+      fill: '#ffffff',
+      backgroundColor: 'rgba(0,0,0,0.8)',
+      padding: { x: 4, y: 2 },
+      align: 'center'
+    }).setOrigin(0.5).setDepth(6)
+    
+    // Эффект превращения
+    this.createServerDeathEffect(x, y)
+    
+    // Обновляем счетчик
+    this.collectedItems++
+    this.counterText.setText(`💀 ${this.collectedItems} / ${this.totalItems}`)
+    this.onItemCollected(this.collectedItems)
+    
+    // Эффект на UI
+    this.tweens.add({
+      targets: this.counterText,
+      scale: 1.3,
+      duration: 100,
+      yoyo: true
+    })
+    
+    // Проверяем завершение
+    if (this.collectedItems >= this.totalItems) {
+      this.showPrincess()
+    }
+  }
+
+  createServerDeathEffect(x, y) {
+    // Искры и дым
+    this.add.particles(x, y, 'particle', {
+      speed: { min: 50, max: 150 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 1, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 600,
+      quantity: 20,
+      tint: [0xff5722, 0xffeb3b, 0x607d8b, 0x000000]
+    }).explode()
+    
+    // Текст ошибки
+    const errorText = this.add.text(x, y - 20, '❌ SHUTDOWN', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      fill: '#ff0000',
+      stroke: '#000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(200)
+    
+    this.tweens.add({
+      targets: errorText,
+      y: errorText.y - 40,
+      alpha: 0,
+      duration: 1000,
+      onComplete: () => errorText.destroy()
+    })
+    
+    this.cameras.main.shake(150, 0.008)
   }
 
   createPrincess() {
@@ -793,61 +904,6 @@ export default class MainScene extends Phaser.Scene {
     fogGraphics.setAlpha(0.3)
   }
 
-  destroyGrave(player, grave) {
-    if (this.gameComplete) return
-    
-    // Находим связанный текст
-    const textObj = this.textObjects.find(obj => obj.sprite === grave)
-    if (textObj) {
-      textObj.text.destroy()
-      this.textObjects = this.textObjects.filter(obj => obj.sprite !== grave)
-    }
-    
-    // Удаляем холмик
-    if (grave.mound) {
-      grave.mound.destroy()
-    }
-    
-    // Эффект разрушения
-    this.createDestroyEffect(grave.x, grave.y)
-    
-    // Удаляем могилу
-    grave.destroy()
-    
-    // Обновляем счетчик
-    this.collectedItems++
-    this.counterText.setText(`☠️ ${this.collectedItems} / ${this.totalItems}`)
-    this.onItemCollected(this.collectedItems)
-    
-    // Эффект на UI
-    this.tweens.add({
-      targets: this.counterText,
-      scale: 1.3,
-      duration: 100,
-      yoyo: true
-    })
-    
-    // Проверяем завершение
-    if (this.collectedItems >= this.totalItems) {
-      this.showPrincess()
-    }
-  }
-
-  createDestroyEffect(x, y) {
-    const colors = [0x8b4513, 0x696969, 0xa0a0a0, 0x5d4037]
-    
-    this.add.particles(x, y, 'particle', {
-      speed: { min: 50, max: 150 },
-      angle: { min: 0, max: 360 },
-      scale: { start: 1, end: 0 },
-      alpha: { start: 1, end: 0 },
-      lifespan: 500,
-      quantity: 15,
-      tint: colors
-    }).explode()
-    
-    this.cameras.main.shake(100, 0.005)
-  }
 
   showPrincess() {
     this.princess.setVisible(true)

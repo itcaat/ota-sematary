@@ -39,6 +39,7 @@ export default class BootScene extends Phaser.Scene {
     this.generatePlayerSprite()
     this.generateZombieSprite()
     this.generateZubkovSprite()
+    this.generateServerSprite()
     this.generateGraveMound()
     this.generateGraveyardSprites()
     this.generatePrincessSprite()
@@ -88,10 +89,10 @@ export default class BootScene extends Phaser.Scene {
     ctx.lineWidth = 1
     ctx.strokeRect(8, 10, 16, 14)
     
-    // Надпись SALO
-    ctx.fillStyle = '#ff0000'
-    ctx.font = 'bold 6px monospace'
-    ctx.fillText('SALO', 9, 20)
+    // Надпись OTAOPS
+    ctx.fillStyle = '#00ff00'
+    ctx.font = 'bold 5px monospace'
+    ctx.fillText('OTAOPS', 7, 20)
     
     // Голова
     ctx.fillStyle = '#ffcc99'
@@ -362,6 +363,91 @@ export default class BootScene extends Phaser.Scene {
     ctx.fillStyle = '#000000'
     ctx.fillRect(14, 44, 8, 3)
     ctx.fillRect(26, 44, 8, 3)
+  }
+
+  generateServerSprite() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 32
+    canvas.height = 40
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.ellipse(16, 38, 12, 4, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Корпус сервера
+    ctx.fillStyle = '#37474f'
+    ctx.fillRect(4, 4, 24, 32)
+    
+    // Передняя панель
+    ctx.fillStyle = '#455a64'
+    ctx.fillRect(6, 6, 20, 28)
+    
+    // Слоты дисков
+    ctx.fillStyle = '#263238'
+    ctx.fillRect(8, 8, 16, 4)
+    ctx.fillRect(8, 14, 16, 4)
+    ctx.fillRect(8, 20, 16, 4)
+    ctx.fillRect(8, 26, 16, 4)
+    
+    // LED индикаторы (зелёные - работает)
+    ctx.fillStyle = '#4caf50'
+    ctx.fillRect(22, 9, 2, 2)
+    ctx.fillRect(22, 15, 2, 2)
+    ctx.fillRect(22, 21, 2, 2)
+    ctx.fillRect(22, 27, 2, 2)
+    
+    // Вентиляционные отверстия
+    ctx.fillStyle = '#1a237e'
+    for (let y = 32; y < 36; y += 2) {
+      ctx.fillRect(8, y, 16, 1)
+    }
+    
+    // Блик
+    ctx.fillStyle = 'rgba(255,255,255,0.1)'
+    ctx.fillRect(6, 6, 4, 28)
+    
+    this.textures.addCanvas('server', canvas)
+    
+    // Сервер с ошибкой (красные LED)
+    const errorCanvas = document.createElement('canvas')
+    errorCanvas.width = 32
+    errorCanvas.height = 40
+    const eCtx = errorCanvas.getContext('2d')
+    eCtx.imageSmoothingEnabled = false
+    
+    // Тень
+    eCtx.fillStyle = 'rgba(0,0,0,0.3)'
+    eCtx.beginPath()
+    eCtx.ellipse(16, 38, 12, 4, 0, 0, Math.PI * 2)
+    eCtx.fill()
+    
+    // Корпус
+    eCtx.fillStyle = '#37474f'
+    eCtx.fillRect(4, 4, 24, 32)
+    
+    // Передняя панель
+    eCtx.fillStyle = '#455a64'
+    eCtx.fillRect(6, 6, 20, 28)
+    
+    // Слоты
+    eCtx.fillStyle = '#263238'
+    eCtx.fillRect(8, 8, 16, 4)
+    eCtx.fillRect(8, 14, 16, 4)
+    eCtx.fillRect(8, 20, 16, 4)
+    eCtx.fillRect(8, 26, 16, 4)
+    
+    // Красные LED - ошибка!
+    eCtx.fillStyle = '#f44336'
+    eCtx.fillRect(22, 9, 2, 2)
+    eCtx.fillRect(22, 15, 2, 2)
+    eCtx.fillRect(22, 21, 2, 2)
+    eCtx.fillRect(22, 27, 2, 2)
+    
+    this.textures.addCanvas('server_error', errorCanvas)
   }
 
   generateGraveMound() {
