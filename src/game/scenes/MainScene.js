@@ -17,6 +17,12 @@ export default class MainScene extends Phaser.Scene {
     this.collectedItems = 0
     this.gameComplete = false
     this.officeUnlocked = false
+    
+    // Механика переноса серверов
+    this.carryingServer = false
+    this.serversTransferred = 0
+    this.totalServersToTransfer = 6
+    this.playerSpeedMultiplier = 1
   }
 
   create() {
@@ -42,6 +48,7 @@ export default class MainScene extends Phaser.Scene {
     
     this.createMap()
     this.createBuildings()
+    this.createServerTransferSystem()
     this.createPlayer()
     this.createZombies()
     this.createFriendlyNPCs()
@@ -263,11 +270,235 @@ export default class MainScene extends Phaser.Scene {
       })
     })
     
-    // Коллизия игрока с аптечками
-    this.physics.add.overlap(this.player, this.medkits, this.collectMedkit, null, this)
+    // Коллизия с аптечками создаётся в createPlayer после создания игрока
+  }
+
+  createServerTransferSystem() {
+    // Находим датацентры
+    this.selectelDC = this.buildings.find(b => b.buildingType === 'selectel')
+    this.yandexDC = this.buildings.find(b => b.buildingType === 'yandex')
+    
+    if (!this.selectelDC || !this.yandexDC) return
+    
+    // Серверы для переноса в Selectel
+    this.transferServers = this.physics.add.group()
+    
+    const serverPositions = [
+      { x: -50, y: -40 },
+      { x: 0, y: -40 },
+      { x: 50, y: -40 },
+      { x: -50, y: 20 },
+      { x: 0, y: 20 },
+      { x: 50, y: 20 }
+    ]
+    
+    serverPositions.forEach((pos, i) => {
+      const server = this.transferServers.create(
+        this.selectelDC.x + pos.x,
+        this.selectelDC.y + pos.y,
+        'server'
+      )
+      server.setDepth(6)
+      server.body.setAllowGravity(false)
+      server.setScale(0.8)
+      server.serverId = i
+      
+      // Мигание
+      this.tweens.add({
+        targets: server,
+        alpha: 0.7,
+        duration: 500 + i * 100,
+        yoyo: true,
+        repeat: -1
+      })
+    })
+    
+    // Зона доставки в Yandex (подсвеченная область)
+    this.deliveryZone = this.add.rectangle(
+      this.yandexDC.x,
+      this.yandexDC.y,
+      80, 60,
+      0xffcc00, 0.3
+    )
+    this.deliveryZone.setDepth(5)
+    
+    // Пульсация зоны доставки
+    this.tweens.add({
+      targets: this.deliveryZone,
+      alpha: 0.1,
+      duration: 800,
+      yoyo: true,
+      repeat: -1
+    })
+    
+    // Текст зоны доставки
+    this.deliveryZoneText = this.add.text(
+      this.yandexDC.x,
+      this.yandexDC.y + 45,
+      '📦 Зона доставки',
+      {
+        fontFamily: 'monospace',
+        fontSize: '9px',
+        fill: '#ffcc00',
+        stroke: '#000000',
+        strokeThickness: 2
+      }
+    ).setOrigin(0.5).setDepth(6)
+    
+    // UI счётчик переноса
+    this.transferText = this.add.text(400, 80, `📦 Перенос: 0/${this.totalServersToTransfer}`, {
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      fill: '#ffcc00',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
+    
+    // Индикатор что несём сервер
+    this.carryingText = this.add.text(400, 100, '', {
+      fontFamily: 'monospace',
+      fontSize: '12px',
+      fill: '#00ff00',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
+  }
+
+  pickupTransferServer(player, server) {
+    if (this.carryingServer) return
+    
+    this.carryingServer = true
+    server.destroy()
+    
+    // Показываем что несём
+    this.carryingText.setText('🖥️ Несёшь сервер! Отнеси в Yandex DC')
+    
+    // Визуальный эффект - игрок тащит сервер
+    this.carriedServerSprite = this.add.sprite(0, 0, 'server')
+    this.carriedServerSprite.setScale(0.6)
+    this.carriedServerSprite.setDepth(15)
+    this.carriedServerSprite.setAlpha(0.8)
+    
+    // Звук
+    this.sound.playServerDeath()
+    
+    // Замедляем игрока когда несёт сервер
+    this.playerSpeedMultiplier = 0.6
+  }
+
+  deliverServer() {
+    if (!this.carryingServer) return
+    
+    // Проверяем что игрок в зоне доставки Yandex
+    const dist = Phaser.Math.Distance.Between(
+      this.player.x, this.player.y,
+      this.yandexDC.x, this.yandexDC.y
+    )
+    
+    if (dist > 60) return
+    
+    this.carryingServer = false
+    this.serversTransferred++
+    
+    // Убираем спрайт переносимого сервера
+    if (this.carriedServerSprite) {
+      this.carriedServerSprite.destroy()
+      this.carriedServerSprite = null
+    }
+    
+    // Обновляем UI
+    this.transferText.setText(`📦 Перенос: ${this.serversTransferred}/${this.totalServersToTransfer}`)
+    this.carryingText.setText('')
+    
+    // Восстанавливаем скорость
+    this.playerSpeedMultiplier = 1
+    
+    // Эффект доставки
+    this.cameras.main.flash(200, 255, 200, 0)
+    
+    // Частицы
+    for (let i = 0; i < 10; i++) {
+      const particle = this.add.rectangle(
+        this.yandexDC.x + Phaser.Math.Between(-30, 30),
+        this.yandexDC.y + Phaser.Math.Between(-30, 30),
+        6, 6, 0xffcc00
+      )
+      particle.setDepth(100)
+      this.tweens.add({
+        targets: particle,
+        y: particle.y - 40,
+        alpha: 0,
+        duration: 500,
+        onComplete: () => particle.destroy()
+      })
+    }
+    
+    // Текст +1
+    const plusText = this.add.text(this.player.x, this.player.y - 30, '+1 📦', {
+      fontFamily: 'monospace',
+      fontSize: '16px',
+      fill: '#ffcc00',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(100)
+    
+    this.tweens.add({
+      targets: plusText,
+      y: plusText.y - 40,
+      alpha: 0,
+      duration: 1000,
+      onComplete: () => plusText.destroy()
+    })
+    
+    // Звук
+    this.sound.playHeal()
+    
+    // Проверяем завершение переноса
+    if (this.serversTransferred >= this.totalServersToTransfer) {
+      this.onAllServersTransferred()
+    }
+  }
+
+  onAllServersTransferred() {
+    // Уведомление
+    const completeText = this.add.text(400, 250, '✅ ВСЕ СЕРВЕРЫ ПЕРЕНЕСЕНЫ!\nМиграция завершена!', {
+      fontFamily: 'monospace',
+      fontSize: '18px',
+      fill: '#00ff00',
+      stroke: '#000000',
+      strokeThickness: 4,
+      align: 'center'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
+    
+    this.tweens.add({
+      targets: completeText,
+      scale: 1.1,
+      duration: 500,
+      yoyo: true,
+      repeat: 2,
+      onComplete: () => {
+        this.tweens.add({
+          targets: completeText,
+          alpha: 0,
+          duration: 1000,
+          onComplete: () => completeText.destroy()
+        })
+      }
+    })
+    
+    // Скрываем зону доставки
+    this.deliveryZone.setVisible(false)
+    this.deliveryZoneText.setVisible(false)
+    
+    // Обновляем текст
+    this.transferText.setText('📦 Миграция: ✅ ЗАВЕРШЕНА')
+    this.transferText.setFill('#00ff00')
   }
   
   collectMedkit(player, medkit) {
+    // Если здоровье полное - не подбираем
+    if (this.playerHealth >= 3) return
+    
     // Эффект подбора
     this.tweens.add({
       targets: medkit,
@@ -277,17 +508,9 @@ export default class MainScene extends Phaser.Scene {
       onComplete: () => medkit.destroy()
     })
     
-    // Восстанавливаем здоровье
-    const healAmount = 50
-    this.playerHealth = Math.min(100, this.playerHealth + healAmount)
-    this.healthText.setText(`❤️ ${this.playerHealth}`)
-    
-    // Обновляем цвет здоровья
-    if (this.playerHealth > 60) {
-      this.healthText.setFill('#00ff00')
-    } else if (this.playerHealth > 30) {
-      this.healthText.setFill('#ffff00')
-    }
+    // Восстанавливаем 1 жизнь (максимум 3)
+    this.playerHealth = Math.min(3, this.playerHealth + 1)
+    this.updateHealthUI()
     
     // Визуальный эффект исцеления
     this.player.setTint(0x00ff00)
@@ -315,8 +538,8 @@ export default class MainScene extends Phaser.Scene {
     // Звук исцеления
     this.sound.playHeal()
     
-    // Текст +HP
-    const healText = this.add.text(player.x, player.y - 30, `+${healAmount} HP`, {
+    // Текст +1 жизнь
+    const healText = this.add.text(player.x, player.y - 30, '+1 ❤️', {
       fontFamily: 'monospace',
       fontSize: '14px',
       fill: '#00ff00',
@@ -390,6 +613,16 @@ export default class MainScene extends Phaser.Scene {
     // Коллизия с закрытой дверью офиса
     if (this.officeDoor) {
       this.officeDoorCollider = this.physics.add.collider(this.player, this.officeDoor)
+    }
+    
+    // Коллизия с серверами для переноса
+    if (this.transferServers) {
+      this.physics.add.overlap(this.player, this.transferServers, this.pickupTransferServer, null, this)
+    }
+    
+    // Коллизия с аптечками
+    if (this.medkits) {
+      this.physics.add.overlap(this.player, this.medkits, this.collectMedkit, null, this)
     }
     
     // Текст OTAOPS над игроком
@@ -584,7 +817,7 @@ export default class MainScene extends Phaser.Scene {
       loseRange: 250,
       startX: 600,
       startY: 400,
-      damage: 8 // Слабая
+      damage: 1 // Снимает 1 жизнь
     }
     
     // Имя над головой
@@ -663,21 +896,22 @@ export default class MainScene extends Phaser.Scene {
 
   zombieGirlHitPlayer(player, zombieGirl) {
     if (this.isInvulnerable || this.gameComplete || this.isHiding) return
+    if (!zombieGirl.girlData) return
     
     const damage = zombieGirl.girlData.damage
     this.playerHealth -= damage
-    this.healthText.setText(`❤️ ${this.playerHealth}`)
+    this.updateHealthUI()
     
     // Эффект урона
     this.cameras.main.shake(100, 0.005)
     player.setTint(0xff69b4) // Розовый тинт
     
     this.time.delayedCall(200, () => {
-      player.clearTint()
+      if (player.active) player.clearTint()
     })
     
     // Звук
-    this.sound.playDamage()
+    this.sound.playAlert()
     
     // Неуязвимость
     this.isInvulnerable = true
@@ -688,13 +922,6 @@ export default class MainScene extends Phaser.Scene {
     // Проверка смерти
     if (this.playerHealth <= 0) {
       this.gameOver()
-    }
-    
-    // Обновляем цвет здоровья
-    if (this.playerHealth <= 30) {
-      this.healthText.setFill('#ff0000')
-    } else if (this.playerHealth <= 60) {
-      this.healthText.setFill('#ffff00')
     }
   }
 
@@ -1870,7 +2097,25 @@ export default class MainScene extends Phaser.Scene {
     // Обновляем зомби-девочку
     this.updateZombieGirl()
     
-    const speed = 200
+    // Обновляем позицию переносимого сервера
+    if (this.carriedServerSprite && this.carryingServer) {
+      this.carriedServerSprite.x = this.player.x + 15
+      this.carriedServerSprite.y = this.player.y - 5
+    }
+    
+    // Проверяем доставку сервера
+    if (this.carryingServer && this.yandexDC) {
+      const distToYandex = Phaser.Math.Distance.Between(
+        this.player.x, this.player.y,
+        this.yandexDC.x, this.yandexDC.y
+      )
+      if (distToYandex < 60) {
+        this.deliverServer()
+      }
+    }
+    
+    const baseSpeed = 200
+    const speed = baseSpeed * this.playerSpeedMultiplier
     let velocityX = 0
     let velocityY = 0
     
