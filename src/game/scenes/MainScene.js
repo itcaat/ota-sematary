@@ -165,6 +165,102 @@ export default class MainScene extends Phaser.Scene {
     
     // Коллизия зомби с игроком
     this.physics.add.overlap(this.player, this.zombies, this.zombieHitPlayer, null, this)
+    
+    // Создаём босса Zubkov
+    this.createZubkov()
+  }
+
+  createZubkov() {
+    this.zubkov = this.physics.add.sprite(800, 600, 'zubkov')
+    this.zubkov.setOrigin(0.5, 0.5)
+    this.zubkov.setSize(30, 30)
+    this.zubkov.setOffset(9, 14)
+    this.zubkov.setDepth(10)
+    this.zubkov.setCollideWorldBounds(true)
+    this.zubkov.setScale(1.2)
+    
+    // Данные Zubkov - он сильнее и быстрее
+    this.zubkov.zombieData = {
+      state: 'patrol',
+      direction: 'down',
+      patrolX: [600, 1000],
+      patrolY: null,
+      patrolDirection: 1,
+      speed: 80,
+      chaseSpeed: 160,  // Быстрее обычных зомби
+      detectionRange: 200,  // Видит дальше
+      loseRange: 350,
+      homeX: 800,
+      homeY: 600
+    }
+    
+    // Текст над Zubkov
+    this.zubkovText = this.add.text(this.zubkov.x, this.zubkov.y - 35, 'ZUBKOV', {
+      fontFamily: 'monospace',
+      fontSize: '10px',
+      fill: '#ffd700',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(100)
+    
+    // Коллизии
+    this.physics.add.collider(this.zubkov, this.walls)
+    this.physics.add.overlap(this.player, this.zubkov, this.zubkovHitPlayer, null, this)
+  }
+
+  zubkovHitPlayer(player, zubkov) {
+    if (this.isInvulnerable || this.gameComplete) return
+    
+    // Zubkov наносит 2 урона!
+    this.playerHealth -= 2
+    this.updateHealthUI()
+    
+    // Сильное отбрасывание
+    const angle = Phaser.Math.Angle.Between(zubkov.x, zubkov.y, player.x, player.y)
+    player.setVelocity(
+      Math.cos(angle) * 400,
+      Math.sin(angle) * 400
+    )
+    
+    // Неуязвимость
+    this.isInvulnerable = true
+    
+    // Мигание
+    this.tweens.add({
+      targets: player,
+      alpha: 0.3,
+      duration: 100,
+      yoyo: true,
+      repeat: 7,
+      onComplete: () => {
+        player.alpha = 1
+        this.isInvulnerable = false
+      }
+    })
+    
+    // Сильная тряска
+    this.cameras.main.shake(300, 0.02)
+    
+    // Zubkov говорит
+    const shout = this.add.text(zubkov.x, zubkov.y - 50, '💀 УВОЛЕН!', {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      fill: '#ff0000',
+      stroke: '#000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(200)
+    
+    this.tweens.add({
+      targets: shout,
+      y: shout.y - 30,
+      alpha: 0,
+      duration: 1500,
+      onComplete: () => shout.destroy()
+    })
+    
+    if (this.playerHealth <= 0) {
+      this.gameOver()
+    }
   }
 
   zombieHitPlayer(player, zombie) {
@@ -422,6 +518,102 @@ export default class MainScene extends Phaser.Scene {
       beers += i < this.drunkLevel ? '🍺' : '⬜'
     }
     this.drunkText.setText(beers)
+  }
+
+  updateZubkov() {
+    if (!this.zubkov || !this.zubkov.active) return
+    
+    const data = this.zubkov.zombieData
+    const distToPlayer = Phaser.Math.Distance.Between(
+      this.zubkov.x, this.zubkov.y, this.player.x, this.player.y
+    )
+    
+    // Определяем состояние
+    if (data.state === 'patrol') {
+      if (distToPlayer < data.detectionRange) {
+        data.state = 'chase'
+        this.showZubkovAlert()
+      }
+    } else if (data.state === 'chase') {
+      if (distToPlayer > data.loseRange) {
+        data.state = 'return'
+      }
+    } else if (data.state === 'return') {
+      const distToHome = Phaser.Math.Distance.Between(
+        this.zubkov.x, this.zubkov.y, data.homeX, data.homeY
+      )
+      if (distToHome < 10) {
+        data.state = 'patrol'
+      }
+      if (distToPlayer < data.detectionRange) {
+        data.state = 'chase'
+        this.showZubkovAlert()
+      }
+    }
+    
+    let velocityX = 0
+    let velocityY = 0
+    
+    if (data.state === 'patrol') {
+      if (data.patrolX) {
+        velocityX = data.patrolDirection * data.speed
+        if (this.zubkov.x <= data.patrolX[0]) data.patrolDirection = 1
+        if (this.zubkov.x >= data.patrolX[1]) data.patrolDirection = -1
+      }
+    } else if (data.state === 'chase') {
+      const angle = Phaser.Math.Angle.Between(
+        this.zubkov.x, this.zubkov.y, this.player.x, this.player.y
+      )
+      velocityX = Math.cos(angle) * data.chaseSpeed
+      velocityY = Math.sin(angle) * data.chaseSpeed
+    } else if (data.state === 'return') {
+      const angle = Phaser.Math.Angle.Between(
+        this.zubkov.x, this.zubkov.y, data.homeX, data.homeY
+      )
+      velocityX = Math.cos(angle) * data.speed
+      velocityY = Math.sin(angle) * data.speed
+    }
+    
+    this.zubkov.setVelocity(velocityX, velocityY)
+    
+    // Обновляем направление
+    if (Math.abs(velocityX) > Math.abs(velocityY)) {
+      data.direction = velocityX > 0 ? 'right' : 'left'
+    } else if (velocityY !== 0) {
+      data.direction = velocityY > 0 ? 'down' : 'up'
+    }
+    
+    this.zubkov.setTexture(`zubkov_${data.direction}`)
+    
+    // Красный оттенок когда агрится
+    if (data.state === 'chase') {
+      this.zubkov.setTint(0xff4444)
+    } else {
+      this.zubkov.clearTint()
+    }
+    
+    // Обновляем позицию текста
+    this.zubkovText.x = this.zubkov.x
+    this.zubkovText.y = this.zubkov.y - 35
+  }
+
+  showZubkovAlert() {
+    const alert = this.add.text(this.zubkov.x, this.zubkov.y - 50, '🔥 ТЫ УВОЛЕН!', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      fill: '#ff0000',
+      stroke: '#000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(200)
+    
+    this.tweens.add({
+      targets: alert,
+      y: alert.y - 30,
+      alpha: 0,
+      scale: 1.5,
+      duration: 1500,
+      onComplete: () => alert.destroy()
+    })
   }
 
   showAlertIcon(zombie) {
@@ -823,6 +1015,9 @@ export default class MainScene extends Phaser.Scene {
     
     // Обновляем зомби
     this.updateZombies()
+    
+    // Обновляем Zubkov
+    this.updateZubkov()
     
     const speed = 200
     let velocityX = 0

@@ -38,6 +38,7 @@ export default class BootScene extends Phaser.Scene {
   generateAssets() {
     this.generatePlayerSprite()
     this.generateZombieSprite()
+    this.generateZubkovSprite()
     this.generateGraveMound()
     this.generateGraveyardSprites()
     this.generatePrincessSprite()
@@ -241,6 +242,126 @@ export default class BootScene extends Phaser.Scene {
     } else {
       ctx.fillRect(12, 24, 8, 6)
     }
+  }
+
+  generateZubkovSprite() {
+    const directions = ['down', 'up', 'left', 'right']
+    
+    directions.forEach(dir => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 48
+      canvas.height = 48
+      const ctx = canvas.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      
+      this.drawZubkov(ctx, dir)
+      this.textures.addCanvas(`zubkov_${dir}`, canvas)
+    })
+    
+    // Дефолтный спрайт
+    const defaultCanvas = document.createElement('canvas')
+    defaultCanvas.width = 48
+    defaultCanvas.height = 48
+    const defaultCtx = defaultCanvas.getContext('2d')
+    defaultCtx.imageSmoothingEnabled = false
+    this.drawZubkov(defaultCtx, 'down')
+    this.textures.addCanvas('zubkov', defaultCanvas)
+  }
+
+  drawZubkov(ctx, direction) {
+    // Тень (больше чем у обычного зомби)
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'
+    ctx.beginPath()
+    ctx.ellipse(24, 44, 14, 5, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Тело (больше, в костюме)
+    ctx.fillStyle = '#1a237e' // Тёмно-синий пиджак
+    ctx.fillRect(12, 16, 24, 22)
+    
+    // Белая рубашка
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(18, 18, 12, 8)
+    
+    // Галстук
+    ctx.fillStyle = '#c62828'
+    ctx.fillRect(22, 18, 4, 12)
+    
+    // Надпись ZUBKOV на пиджаке
+    ctx.fillStyle = '#ffd700'
+    ctx.font = 'bold 6px monospace'
+    ctx.fillText('ZUBKOV', 13, 36)
+    
+    // Голова (зелёная кожа зомби, но больше)
+    ctx.fillStyle = '#558b2f'
+    
+    if (direction === 'down') {
+      ctx.fillRect(14, 2, 20, 16)
+      // Лысина/редкие волосы
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(16, 1, 6, 3)
+      ctx.fillRect(26, 2, 4, 2)
+      // Глаза (красные, злые, большие)
+      ctx.fillStyle = '#ff0000'
+      ctx.fillRect(17, 7, 5, 4)
+      ctx.fillRect(26, 7, 5, 4)
+      // Зрачки
+      ctx.fillStyle = '#000'
+      ctx.fillRect(19, 8, 2, 2)
+      ctx.fillRect(28, 8, 2, 2)
+      // Злой рот
+      ctx.fillStyle = '#1b5e20'
+      ctx.fillRect(19, 14, 10, 3)
+      // Зубы
+      ctx.fillStyle = '#ffeb3b'
+      ctx.fillRect(20, 14, 2, 2)
+      ctx.fillRect(24, 14, 2, 2)
+      ctx.fillRect(27, 14, 2, 2)
+    } else if (direction === 'up') {
+      ctx.fillRect(14, 2, 20, 16)
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(14, 1, 20, 6)
+    } else if (direction === 'left') {
+      ctx.fillRect(10, 2, 18, 16)
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(10, 1, 14, 4)
+      ctx.fillStyle = '#ff0000'
+      ctx.fillRect(14, 7, 5, 4)
+    } else if (direction === 'right') {
+      ctx.fillRect(20, 2, 18, 16)
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(24, 1, 14, 4)
+      ctx.fillStyle = '#ff0000'
+      ctx.fillRect(29, 7, 5, 4)
+    }
+    
+    // Руки (вытянуты как у зомби)
+    ctx.fillStyle = '#558b2f'
+    if (direction === 'down') {
+      ctx.fillRect(6, 18, 6, 16)
+      ctx.fillRect(36, 18, 6, 16)
+    } else if (direction === 'up') {
+      ctx.fillRect(8, 14, 6, 12)
+      ctx.fillRect(34, 14, 6, 12)
+    } else if (direction === 'left') {
+      ctx.fillRect(2, 16, 12, 6)
+    } else if (direction === 'right') {
+      ctx.fillRect(34, 16, 12, 6)
+    }
+    
+    // Ноги (брюки)
+    ctx.fillStyle = '#263238'
+    if (direction === 'down' || direction === 'up') {
+      ctx.fillRect(14, 38, 8, 8)
+      ctx.fillRect(26, 38, 8, 8)
+    } else {
+      ctx.fillRect(18, 38, 12, 8)
+    }
+    
+    // Ботинки
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(14, 44, 8, 3)
+    ctx.fillRect(26, 44, 8, 3)
   }
 
   generateGraveMound() {
