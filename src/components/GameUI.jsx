@@ -25,7 +25,19 @@ function GameUI({ collectedItems, totalItems, gameComplete, serversTransferred, 
           </div>
         )}
       </div>
+            
+      {gameComplete && (
+        <div className="complete-overlay">
+          <div className="complete-message">
+            <span className="complete-icon">🏆</span>
+            <span>Иди в SALO OFFICE!</span>
+            <span className="complete-icon">👑</span>
+          </div>
+        </div>
+      )}
+
     </div>
+    
   )
 }
 

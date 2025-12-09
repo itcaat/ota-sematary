@@ -1330,11 +1330,11 @@ export default class MainScene extends Phaser.Scene {
     
     // Конфигурация NPC
     const npcs = [
-      { name: 'karpov', x: 200, y: 300 },
+      { name: 'karpov', x: 150, y: 320 },
       { name: 'rukavkov', x: 550, y: 550 },
       { name: 'mazalov', x: 950, y: 350 },
       { name: 'sergeev', x: 1300, y: 600 },
-      { name: 'sindov', x: 750, y: 900 },
+      { name: 'sindov', x: 750, y: 1000 },
     ]
     
     this.friendlyNPCs = []
