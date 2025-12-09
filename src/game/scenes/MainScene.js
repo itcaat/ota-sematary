@@ -33,6 +33,13 @@ export default class MainScene extends Phaser.Scene {
     this.sound = new SoundManager()
     this.sound.init()
     
+    // Загружаем звук пива (Барни)
+    try {
+      this.beerSound = this.sys.game.sound.add('beer_sound', { volume: 0.5 })
+    } catch (e) {
+      this.beerSound = null
+    }
+    
     // Активация звука и музыки при первом клике
     this.input.once('pointerdown', () => {
       this.sound.resume()
@@ -1431,11 +1438,15 @@ export default class MainScene extends Phaser.Scene {
   }
 
   drinkBeer(player, beer) {
-    // Удаляем бутылку
+    // Удаляем кружку
     beer.destroy()
     
-    // Звук
-    this.sound.playBeer()
+    // Звук Барни из Симпсонов
+    if (this.beerSound) {
+      this.beerSound.play()
+    } else {
+      this.sound.playBeer()
+    }
     
     // Увеличиваем опьянение
     this.drunkLevel = Math.min(this.drunkLevel + 1, 3)

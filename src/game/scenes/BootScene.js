@@ -8,6 +8,9 @@ export default class BootScene extends Phaser.Scene {
   preload() {
     this.createLoadingBar()
     this.generateAssets()
+    
+    // Загружаем звук пива
+    this.load.audio('beer_sound', 'assets/sounds/simpsony-barni.mp3')
   }
 
   createLoadingBar() {
@@ -1257,39 +1260,74 @@ export default class BootScene extends Phaser.Scene {
 
   generateBeerSprite() {
     const canvas = document.createElement('canvas')
-    canvas.width = 24
-    canvas.height = 24
+    canvas.width = 28
+    canvas.height = 32
     const ctx = canvas.getContext('2d')
     ctx.imageSmoothingEnabled = false
     
     // Тень
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'
     ctx.beginPath()
-    ctx.ellipse(12, 22, 6, 2, 0, 0, Math.PI * 2)
+    ctx.ellipse(14, 30, 8, 3, 0, 0, Math.PI * 2)
     ctx.fill()
     
-    // Бутылка
-    ctx.fillStyle = '#4a2c00'
-    ctx.fillRect(9, 6, 6, 14)
+    // Ручка кружки
+    ctx.fillStyle = '#c0c0c0'
+    ctx.beginPath()
+    ctx.arc(24, 18, 5, -Math.PI/2, Math.PI/2)
+    ctx.lineTo(24, 23)
+    ctx.arc(24, 18, 3, Math.PI/2, -Math.PI/2, true)
+    ctx.fill()
+    ctx.strokeStyle = '#909090'
+    ctx.lineWidth = 1
+    ctx.stroke()
     
-    // Горлышко
-    ctx.fillRect(10, 2, 4, 5)
+    // Кружка (основа)
+    ctx.fillStyle = '#c0c0c0'
+    ctx.fillRect(4, 8, 18, 20)
     
-    // Этикетка
-    ctx.fillStyle = '#f5f5dc'
-    ctx.fillRect(9, 10, 6, 6)
+    // Стекло кружки (прозрачность)
+    ctx.fillStyle = 'rgba(200,200,200,0.3)'
+    ctx.fillRect(5, 9, 16, 18)
     
-    // Надпись на этикетке
-    ctx.fillStyle = '#ff0000'
-    ctx.fillRect(10, 12, 4, 2)
+    // Пиво в кружке
+    ctx.fillStyle = '#ffc107'
+    ctx.fillRect(6, 12, 14, 14)
     
-    // Пробка
-    ctx.fillStyle = '#8b4513'
-    ctx.fillRect(10, 1, 4, 2)
+    // Градиент пива (темнее внизу)
+    ctx.fillStyle = '#e6a800'
+    ctx.fillRect(6, 20, 14, 6)
     
-    // Блик
-    ctx.fillStyle = 'rgba(255,255,255,0.3)'
-    ctx.fillRect(13, 6, 2, 10)
+    // Пена сверху
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(6, 9, 14, 5)
+    
+    // Пузырьки пены
+    ctx.beginPath()
+    ctx.arc(8, 8, 2, 0, Math.PI * 2)
+    ctx.arc(12, 7, 2.5, 0, Math.PI * 2)
+    ctx.arc(16, 8, 2, 0, Math.PI * 2)
+    ctx.arc(10, 6, 1.5, 0, Math.PI * 2)
+    ctx.arc(14, 5, 1.5, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Блик на кружке
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'
+    ctx.fillRect(7, 12, 3, 12)
+    
+    // Пузырьки в пиве
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'
+    ctx.beginPath()
+    ctx.arc(10, 18, 1, 0, Math.PI * 2)
+    ctx.arc(14, 22, 1, 0, Math.PI * 2)
+    ctx.arc(12, 16, 0.8, 0, Math.PI * 2)
+    ctx.arc(16, 19, 0.8, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Контур кружки
+    ctx.strokeStyle = '#909090'
+    ctx.lineWidth = 1
+    ctx.strokeRect(4, 8, 18, 20)
     
     this.textures.addCanvas('beer', canvas)
   }
