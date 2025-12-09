@@ -40,6 +40,7 @@ export default class BootScene extends Phaser.Scene {
     this.generateZombieSprite()
     this.generateZubkovSprite()
     this.generateZombieGirlSprite()
+    this.generateCrutchSprite()
     this.generateFriendlyNPCSprite()
     this.generateServerSprite()
     this.generateBuildingSprites()
@@ -367,6 +368,47 @@ export default class BootScene extends Phaser.Scene {
     ctx.fillStyle = '#000000'
     ctx.fillRect(14, 44, 8, 3)
     ctx.fillRect(26, 44, 8, 3)
+  }
+
+  generateCrutchSprite() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 24
+    canvas.height = 24
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    // Костыль (вид сверху, летящий)
+    // Основная палка
+    ctx.fillStyle = '#8b4513'
+    ctx.save()
+    ctx.translate(12, 12)
+    ctx.rotate(Math.PI / 4)
+    ctx.fillRect(-10, -2, 20, 4)
+    ctx.restore()
+    
+    // Поперечина
+    ctx.fillStyle = '#a0522d'
+    ctx.save()
+    ctx.translate(12, 12)
+    ctx.rotate(Math.PI / 4)
+    ctx.fillRect(-8, -5, 6, 3)
+    ctx.restore()
+    
+    // Резиновый наконечник
+    ctx.fillStyle = '#333333'
+    ctx.beginPath()
+    ctx.arc(18, 18, 3, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Блик
+    ctx.fillStyle = '#cd853f'
+    ctx.save()
+    ctx.translate(12, 12)
+    ctx.rotate(Math.PI / 4)
+    ctx.fillRect(-8, -1, 8, 2)
+    ctx.restore()
+    
+    this.textures.addCanvas('crutch', canvas)
   }
 
   generateZombieGirlSprite() {

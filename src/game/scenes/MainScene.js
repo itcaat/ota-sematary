@@ -647,6 +647,9 @@ export default class MainScene extends Phaser.Scene {
   createZombies() {
     this.zombies = this.physics.add.group()
     
+    // Группа костылей (снарядов)
+    this.crutches = this.physics.add.group()
+    
     // Позиции зомби
     const zombiePositions = [
       { x: 600, y: 300, patrolX: [500, 700] },
@@ -693,6 +696,16 @@ export default class MainScene extends Phaser.Scene {
     
     // Коллизия зомби с игроком
     this.physics.add.overlap(this.player, this.zombies, this.zombieHitPlayer, null, this)
+    
+    // Коллизия костылей с игроком
+    this.physics.add.overlap(this.player, this.crutches, this.crutchHitPlayer, null, this)
+    
+    // Периодические броски костылей
+    this.time.addEvent({
+      delay: 2500,
+      callback: () => this.zombieThrowCrutch(),
+      loop: true
+    })
     
     // Периодические звуки зомби
     this.time.addEvent({
@@ -978,6 +991,106 @@ export default class MainScene extends Phaser.Scene {
       onComplete: () => shout.destroy()
     })
     
+    if (this.playerHealth <= 0) {
+      this.gameOver()
+    }
+  }
+
+  zombieThrowCrutch() {
+    if (this.gameComplete || !this.zombies) return
+    
+    // Выбираем случайного зомби который видит игрока
+    const activeZombies = this.zombies.getChildren().filter(z => {
+      if (!z.active || !z.zombieData) return false
+      const dist = Phaser.Math.Distance.Between(z.x, z.y, this.player.x, this.player.y)
+      return dist < 300 && dist > 80 && !this.isHiding
+    })
+    
+    if (activeZombies.length === 0) return
+    
+    // Случайный шанс 40%
+    if (Math.random() > 0.4) return
+    
+    const zombie = Phaser.Math.RND.pick(activeZombies)
+    
+    // Создаём костыль
+    const crutch = this.crutches.create(zombie.x, zombie.y, 'crutch')
+    crutch.setDepth(15)
+    crutch.body.setAllowGravity(false)
+    
+    // Направляем в игрока
+    const angle = Phaser.Math.Angle.Between(zombie.x, zombie.y, this.player.x, this.player.y)
+    const speed = 180
+    crutch.setVelocity(
+      Math.cos(angle) * speed,
+      Math.sin(angle) * speed
+    )
+    
+    // Вращение костыля
+    this.tweens.add({
+      targets: crutch,
+      angle: 720,
+      duration: 1000,
+      ease: 'Linear'
+    })
+    
+    // Эффект броска у зомби
+    zombie.setTint(0xffaa00)
+    this.time.delayedCall(200, () => {
+      if (zombie.active) zombie.clearTint()
+    })
+    
+    // Звук броска
+    this.sound.playAlert()
+    
+    // Уничтожить костыль через 3 секунды
+    this.time.delayedCall(3000, () => {
+      if (crutch.active) crutch.destroy()
+    })
+  }
+
+  crutchHitPlayer(player, crutch) {
+    if (this.isInvulnerable || this.gameComplete || this.isHiding) return
+    
+    // Уничтожаем костыль
+    crutch.destroy()
+    
+    // Урон игроку
+    this.playerHealth--
+    this.updateHealthUI()
+    
+    // Эффекты
+    this.cameras.main.shake(150, 0.01)
+    player.setTint(0xffaa00)
+    
+    this.time.delayedCall(200, () => {
+      if (player.active) player.clearTint()
+    })
+    
+    // Текст урона
+    const damageText = this.add.text(player.x, player.y - 30, '🦴 -1 ❤️', {
+      fontFamily: 'monospace',
+      fontSize: '12px',
+      fill: '#ff6600',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(100)
+    
+    this.tweens.add({
+      targets: damageText,
+      y: damageText.y - 30,
+      alpha: 0,
+      duration: 800,
+      onComplete: () => damageText.destroy()
+    })
+    
+    // Неуязвимость
+    this.isInvulnerable = true
+    this.time.delayedCall(800, () => {
+      this.isInvulnerable = false
+    })
+    
+    // Проверка смерти
     if (this.playerHealth <= 0) {
       this.gameOver()
     }
@@ -2193,4 +2306,3 @@ export default class MainScene extends Phaser.Scene {
     })
   }
 }
-fix
