@@ -508,7 +508,7 @@ export default class MainScene extends Phaser.Scene {
 
   onAllServersTransferred() {
     // Уведомление
-    const completeText = this.add.text(400, 250, '✅ ВСЕ СЕРВЕРЫ ПЕРЕНЕСЕНЫ!\nМиграция завершена!', {
+    const completeText = this.add.text(400, 250, '✅ ВСЕ СЕРВЕРЫ ПЕРЕНЕСЕНЫ!\nБеги в офис скорее!', {
       fontFamily: 'monospace',
       fontSize: '18px',
       fill: '#00ff00',
