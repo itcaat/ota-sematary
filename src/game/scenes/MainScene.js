@@ -26,6 +26,10 @@ export default class MainScene extends Phaser.Scene {
     this.serversTransferred = 0
     this.totalServersToTransfer = 6
     this.playerSpeedMultiplier = 1
+    
+    // Бонус скорости от пива
+    this.beerSpeedBonus = 1
+    this.unstableSpeed = false
   }
 
   create() {
@@ -1478,10 +1482,13 @@ export default class MainScene extends Phaser.Scene {
       this.sound.playBeer()
     }
     
-    // Увеличиваем опьянение
-    this.drunkLevel = Math.min(this.drunkLevel + 1, 3)
+    // Увеличиваем опьянение (без ограничения)
+    this.drunkLevel++
     this.onDrunkChange(this.drunkLevel)
     this.updateDrunkUI()
+    
+    // Обновляем бонус скорости от пива
+    this.updateBeerSpeedBonus()
     
     // Эффект сбора
     const drinkText = this.add.text(player.x, player.y - 30, '🍺 БУЛЬ!', {
@@ -1507,16 +1514,17 @@ export default class MainScene extends Phaser.Scene {
     }
     
     this.drunkTimer = this.time.addEvent({
-      delay: 8000, // 8 секунд опьянения
+      delay: 8000, // 8 секунд на каждый уровень опьянения
       callback: () => {
         this.drunkLevel = Math.max(0, this.drunkLevel - 1)
         this.onDrunkChange(this.drunkLevel)
         this.updateDrunkUI()
+        this.updateBeerSpeedBonus()
         if (this.drunkLevel === 0) {
           this.removeDrunkEffects()
         }
       },
-      repeat: this.drunkLevel - 1
+      repeat: Math.max(0, this.drunkLevel - 1)
     })
   }
 
@@ -1538,6 +1546,18 @@ export default class MainScene extends Phaser.Scene {
 
   updateDrunkUI() {
     // UI теперь в React компоненте
+  }
+
+  updateBeerSpeedBonus() {
+    if (this.drunkLevel <= 3) {
+      // 1-3 пива: +15% скорости за каждое
+      this.beerSpeedBonus = 1 + (this.drunkLevel * 0.15)
+      this.unstableSpeed = false
+    } else {
+      // >3 пива: нестабильная скорость
+      this.beerSpeedBonus = 1.45 // базовый бонус от 3 пив
+      this.unstableSpeed = true
+    }
   }
 
   updateZubkov() {
@@ -2230,7 +2250,15 @@ export default class MainScene extends Phaser.Scene {
     }
     
     const baseSpeed = 200
-    const speed = baseSpeed * this.playerSpeedMultiplier
+    
+    // Бонус скорости от пива
+    let beerMultiplier = this.beerSpeedBonus
+    if (this.unstableSpeed) {
+      // Нестабильная скорость при >3 пивах: от 0.5x до 2x
+      beerMultiplier = 0.5 + Math.abs(Math.sin(this.time.now / 300)) * 1.5
+    }
+    
+    const speed = baseSpeed * this.playerSpeedMultiplier * beerMultiplier
     let velocityX = 0
     let velocityY = 0
     
