@@ -471,6 +471,9 @@ export default class MainScene extends Phaser.Scene {
     
     // Создаём босса Zubkov
     this.createZubkov()
+    
+    // Создаём зомби-девочку (narine)
+    this.createZombieGirl()
   }
 
   playRandomZombieSound() {
@@ -555,6 +558,144 @@ export default class MainScene extends Phaser.Scene {
     })
     
     this.physics.add.overlap(this.player, this.zubkov, this.zubkovHitPlayer, null, this)
+  }
+
+  createZombieGirl() {
+    // Зомби-девочка narine
+    this.zombieGirl = this.physics.add.sprite(600, 400, 'zombie_girl')
+    this.zombieGirl.setOrigin(0.5, 0.5)
+    this.zombieGirl.setDepth(10)
+    this.zombieGirl.body.setSize(20, 28)
+    this.zombieGirl.body.setOffset(6, 10)
+    
+    // Данные для AI (медленная!)
+    this.zombieGirl.girlData = {
+      state: 'patrol',
+      patrolPoints: [
+        { x: 400, y: 300 },
+        { x: 700, y: 300 },
+        { x: 700, y: 600 },
+        { x: 400, y: 600 }
+      ],
+      currentPatrolIndex: 0,
+      speed: 25, // Очень медленная
+      chaseSpeed: 40, // Даже в погоне медленная
+      detectionRange: 150,
+      loseRange: 250,
+      startX: 600,
+      startY: 400,
+      damage: 8 // Слабая
+    }
+    
+    // Имя над головой
+    this.zombieGirl.nameText = this.add.text(600, 400 - 30, 'narine', {
+      fontFamily: 'monospace',
+      fontSize: '8px',
+      fill: '#ff69b4',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(11)
+    
+    // Текст фразы
+    this.zombieGirl.phraseText = this.add.text(600, 400 - 45, '', {
+      fontFamily: 'monospace',
+      fontSize: '9px',
+      fill: '#ffffff',
+      stroke: '#4a148c',
+      strokeThickness: 2,
+      align: 'center',
+      wordWrap: { width: 150 }
+    }).setOrigin(0.5).setDepth(11)
+    
+    // Фразы зомби-девочки
+    this.zombieGirlPhrases = [
+      'Хватит в офисе мусорить!',
+      'Туда не ходи, сюда ходи!',
+      'Кто опять свет не выключил?!',
+      'Документы где?!',
+      'Заявку напиши!',
+      'Это не моя зона ответственности!',
+      'По регламенту не положено!',
+      'Сначала согласуй!',
+      'А пропуск где?',
+      'Кофе кончился, ваша очередь покупать!',
+      'Принтер опять сломали!',
+      'Кондиционер не трогать!',
+      'Уборщица уже ушла!',
+      'Заявка в работе... с прошлого года'
+    ]
+    
+    // Таймер фраз
+    this.time.addEvent({
+      delay: 4000,
+      callback: () => this.showZombieGirlPhrase(),
+      loop: true
+    })
+    
+    // Коллизии
+    this.physics.add.collider(this.zombieGirl, this.walls)
+    
+    // Коллизия со стенами зданий
+    this.buildings.forEach(building => {
+      building.walls.forEach(wall => {
+        this.physics.add.collider(this.zombieGirl, wall)
+      })
+    })
+    
+    // Коллизия с игроком
+    this.physics.add.overlap(this.player, this.zombieGirl, this.zombieGirlHitPlayer, null, this)
+  }
+
+  showZombieGirlPhrase() {
+    if (!this.zombieGirl || !this.zombieGirl.active) return
+    
+    const phrase = Phaser.Math.RND.pick(this.zombieGirlPhrases)
+    this.zombieGirl.phraseText.setText(phrase)
+    this.zombieGirl.phraseText.setAlpha(1)
+    
+    // Скрыть через 3 секунды
+    this.time.delayedCall(3000, () => {
+      if (this.zombieGirl && this.zombieGirl.phraseText) {
+        this.zombieGirl.phraseText.setAlpha(0)
+      }
+    })
+  }
+
+  zombieGirlHitPlayer(player, zombieGirl) {
+    if (this.isInvulnerable || this.gameComplete || this.isHiding) return
+    
+    const damage = zombieGirl.girlData.damage
+    this.playerHealth -= damage
+    this.healthText.setText(`❤️ ${this.playerHealth}`)
+    
+    // Эффект урона
+    this.cameras.main.shake(100, 0.005)
+    player.setTint(0xff69b4) // Розовый тинт
+    
+    this.time.delayedCall(200, () => {
+      player.clearTint()
+    })
+    
+    // Звук
+    this.sound.playDamage()
+    
+    // Неуязвимость
+    this.isInvulnerable = true
+    this.time.delayedCall(1000, () => {
+      this.isInvulnerable = false
+    })
+    
+    // Проверка смерти
+    if (this.playerHealth <= 0) {
+      this.gameOver()
+    }
+    
+    // Обновляем цвет здоровья
+    if (this.playerHealth <= 30) {
+      this.healthText.setFill('#ff0000')
+    } else if (this.playerHealth <= 60) {
+      this.healthText.setFill('#ffff00')
+    }
   }
 
   zubkovHitPlayer(player, zubkov) {
@@ -1095,6 +1236,97 @@ export default class MainScene extends Phaser.Scene {
     this.zubkovText.y = this.zubkov.y - 35
   }
 
+  updateZombieGirl() {
+    if (!this.zombieGirl || !this.zombieGirl.active) return
+    
+    const data = this.zombieGirl.girlData
+    const distToPlayer = Phaser.Math.Distance.Between(
+      this.zombieGirl.x, this.zombieGirl.y, this.player.x, this.player.y
+    )
+    
+    // Определяем состояние
+    if (data.state === 'patrol') {
+      if (distToPlayer < data.detectionRange && !this.isHiding) {
+        data.state = 'chase'
+      }
+    } else if (data.state === 'chase') {
+      if (distToPlayer > data.loseRange || this.isHiding) {
+        data.state = 'return'
+      }
+    } else if (data.state === 'return') {
+      const distToHome = Phaser.Math.Distance.Between(
+        this.zombieGirl.x, this.zombieGirl.y, data.startX, data.startY
+      )
+      if (distToHome < 10) {
+        data.state = 'patrol'
+        data.currentPatrolIndex = 0
+      }
+      if (distToPlayer < data.detectionRange && !this.isHiding) {
+        data.state = 'chase'
+      }
+    }
+    
+    let velocityX = 0
+    let velocityY = 0
+    let direction = 'down'
+    
+    if (data.state === 'patrol') {
+      // Патрулирование по точкам
+      const target = data.patrolPoints[data.currentPatrolIndex]
+      const distToTarget = Phaser.Math.Distance.Between(
+        this.zombieGirl.x, this.zombieGirl.y, target.x, target.y
+      )
+      
+      if (distToTarget < 10) {
+        data.currentPatrolIndex = (data.currentPatrolIndex + 1) % data.patrolPoints.length
+      }
+      
+      const angle = Phaser.Math.Angle.Between(
+        this.zombieGirl.x, this.zombieGirl.y, target.x, target.y
+      )
+      velocityX = Math.cos(angle) * data.speed
+      velocityY = Math.sin(angle) * data.speed
+      
+    } else if (data.state === 'chase') {
+      const angle = Phaser.Math.Angle.Between(
+        this.zombieGirl.x, this.zombieGirl.y, this.player.x, this.player.y
+      )
+      velocityX = Math.cos(angle) * data.chaseSpeed
+      velocityY = Math.sin(angle) * data.chaseSpeed
+      
+    } else if (data.state === 'return') {
+      const angle = Phaser.Math.Angle.Between(
+        this.zombieGirl.x, this.zombieGirl.y, data.startX, data.startY
+      )
+      velocityX = Math.cos(angle) * data.speed
+      velocityY = Math.sin(angle) * data.speed
+    }
+    
+    this.zombieGirl.setVelocity(velocityX, velocityY)
+    
+    // Определяем направление
+    if (Math.abs(velocityX) > Math.abs(velocityY)) {
+      direction = velocityX > 0 ? 'right' : 'left'
+    } else if (velocityY !== 0) {
+      direction = velocityY > 0 ? 'down' : 'up'
+    }
+    
+    this.zombieGirl.setTexture(`zombie_girl_${direction}`)
+    
+    // Розовый оттенок когда агрится
+    if (data.state === 'chase') {
+      this.zombieGirl.setTint(0xff69b4)
+    } else {
+      this.zombieGirl.clearTint()
+    }
+    
+    // Обновляем позицию текстов
+    this.zombieGirl.nameText.x = this.zombieGirl.x
+    this.zombieGirl.nameText.y = this.zombieGirl.y - 28
+    this.zombieGirl.phraseText.x = this.zombieGirl.x
+    this.zombieGirl.phraseText.y = this.zombieGirl.y - 45
+  }
+
   showZubkovAlert() {
     this.sound.playAlert()
     
@@ -1586,7 +1818,7 @@ export default class MainScene extends Phaser.Scene {
     const subText = this.add.text(
       400,
       350,
-      '💕 Вы спасли принцессу! 💕',
+      '🎉 Вы получаете великолепное НИЧЕГО! 🎉',
       {
         fontFamily: 'monospace',
         fontSize: '28px',
@@ -1634,6 +1866,9 @@ export default class MainScene extends Phaser.Scene {
     
     // Обновляем Zubkov
     this.updateZubkov()
+    
+    // Обновляем зомби-девочку
+    this.updateZombieGirl()
     
     const speed = 200
     let velocityX = 0

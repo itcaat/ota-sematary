@@ -16,7 +16,7 @@ function Instructions() {
       <div className="instructions-content">
         <h2>
           <span className="icon">💀</span>
-          SALO: Кладбищенские Приключения
+          OTA: Кладбищенские Приключения
           <span className="icon">💀</span>
         </h2>
         <div className="controls">

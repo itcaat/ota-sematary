@@ -39,6 +39,7 @@ export default class BootScene extends Phaser.Scene {
     this.generatePlayerSprite()
     this.generateZombieSprite()
     this.generateZubkovSprite()
+    this.generateZombieGirlSprite()
     this.generateFriendlyNPCSprite()
     this.generateServerSprite()
     this.generateBuildingSprites()
@@ -366,6 +367,120 @@ export default class BootScene extends Phaser.Scene {
     ctx.fillStyle = '#000000'
     ctx.fillRect(14, 44, 8, 3)
     ctx.fillRect(26, 44, 8, 3)
+  }
+
+  generateZombieGirlSprite() {
+    const directions = ['down', 'up', 'left', 'right']
+    
+    directions.forEach(dir => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 32
+      canvas.height = 40
+      const ctx = canvas.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      
+      this.drawZombieGirl(ctx, dir)
+      this.textures.addCanvas(`zombie_girl_${dir}`, canvas)
+    })
+    
+    // Дефолтный спрайт
+    const defaultCanvas = document.createElement('canvas')
+    defaultCanvas.width = 32
+    defaultCanvas.height = 40
+    const defaultCtx = defaultCanvas.getContext('2d')
+    defaultCtx.imageSmoothingEnabled = false
+    this.drawZombieGirl(defaultCtx, 'down')
+    this.textures.addCanvas('zombie_girl', defaultCanvas)
+  }
+
+  drawZombieGirl(ctx, direction) {
+    // Тень (маленькая, худая)
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.ellipse(16, 38, 6, 3, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Худое тело в офисном платье
+    ctx.fillStyle = '#4a148c' // Фиолетовое платье
+    ctx.fillRect(12, 14, 8, 18)
+    
+    // Тонкие руки
+    ctx.fillStyle = '#7cb342' // Зелёная кожа
+    ctx.fillRect(8, 16, 4, 10)
+    ctx.fillRect(20, 16, 4, 10)
+    
+    // Худые ноги
+    ctx.fillStyle = '#7cb342'
+    ctx.fillRect(12, 32, 3, 6)
+    ctx.fillRect(17, 32, 3, 6)
+    
+    // Туфли
+    ctx.fillStyle = '#d32f2f'
+    ctx.fillRect(11, 36, 4, 3)
+    ctx.fillRect(17, 36, 4, 3)
+    
+    // Голова
+    ctx.fillStyle = '#7cb342' // Светло-зелёная зомби кожа
+    
+    if (direction === 'down') {
+      ctx.fillRect(10, 2, 12, 13)
+      
+      // Длинные волосы
+      ctx.fillStyle = '#5d4037' // Коричневые волосы
+      ctx.fillRect(8, 0, 16, 5)
+      ctx.fillRect(6, 3, 4, 14)
+      ctx.fillRect(22, 3, 4, 14)
+      
+      // Глаза (большие, пустые)
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(11, 6, 4, 4)
+      ctx.fillRect(17, 6, 4, 4)
+      // Зрачки
+      ctx.fillStyle = '#000000'
+      ctx.fillRect(12, 7, 2, 2)
+      ctx.fillRect(18, 7, 2, 2)
+      
+      // Рот (недовольный)
+      ctx.fillStyle = '#33691e'
+      ctx.fillRect(13, 12, 6, 2)
+      
+    } else if (direction === 'up') {
+      ctx.fillRect(10, 2, 12, 13)
+      // Волосы сзади
+      ctx.fillStyle = '#5d4037'
+      ctx.fillRect(8, 0, 16, 8)
+      ctx.fillRect(6, 3, 4, 14)
+      ctx.fillRect(22, 3, 4, 14)
+      
+    } else if (direction === 'left') {
+      ctx.fillRect(8, 2, 12, 13)
+      ctx.fillStyle = '#5d4037'
+      ctx.fillRect(6, 0, 12, 5)
+      ctx.fillRect(4, 3, 4, 14)
+      // Глаз
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(10, 6, 3, 3)
+      ctx.fillStyle = '#000000'
+      ctx.fillRect(10, 7, 2, 2)
+      
+    } else {
+      ctx.fillRect(12, 2, 12, 13)
+      ctx.fillStyle = '#5d4037'
+      ctx.fillRect(14, 0, 12, 5)
+      ctx.fillRect(24, 3, 4, 14)
+      // Глаз
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(19, 6, 3, 3)
+      ctx.fillStyle = '#000000'
+      ctx.fillRect(20, 7, 2, 2)
+    }
+    
+    // Бейджик (имя)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(12, 15, 8, 4)
+    ctx.fillStyle = '#000000'
+    ctx.font = '3px monospace'
+    ctx.fillText('narine', 11, 18)
   }
 
   generateFriendlyNPCSprite() {
