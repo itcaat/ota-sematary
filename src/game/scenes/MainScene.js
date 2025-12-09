@@ -14,6 +14,9 @@ export default class MainScene extends Phaser.Scene {
   init(data) {
     this.onItemCollected = data.onItemCollected || (() => {})
     this.onGameComplete = data.onGameComplete || (() => {})
+    this.onServerTransferred = data.onServerTransferred || (() => {})
+    this.onDrunkChange = data.onDrunkChange || (() => {})
+    this.onHealthChange = data.onHealthChange || (() => {})
     this.collectedItems = 0
     this.gameComplete = false
     this.officeUnlocked = false
@@ -399,6 +402,9 @@ export default class MainScene extends Phaser.Scene {
     
     this.carryingServer = false
     this.serversTransferred++
+    
+    // Обновляем React UI
+    this.onServerTransferred(this.serversTransferred)
     
     // Убираем спрайт переносимого сервера
     if (this.carriedServerSprite) {
@@ -1138,11 +1144,8 @@ export default class MainScene extends Phaser.Scene {
   }
 
   updateHealthUI() {
-    let hearts = ''
-    for (let i = 0; i < 3; i++) {
-      hearts += i < this.playerHealth ? '❤️' : '🖤'
-    }
-    this.healthText.setText(hearts)
+    // UI теперь в React компоненте
+    this.onHealthChange(this.playerHealth)
   }
 
   gameOver() {
@@ -1436,6 +1439,7 @@ export default class MainScene extends Phaser.Scene {
     
     // Увеличиваем опьянение
     this.drunkLevel = Math.min(this.drunkLevel + 1, 3)
+    this.onDrunkChange(this.drunkLevel)
     this.updateDrunkUI()
     
     // Эффект сбора
@@ -1465,6 +1469,7 @@ export default class MainScene extends Phaser.Scene {
       delay: 8000, // 8 секунд опьянения
       callback: () => {
         this.drunkLevel = Math.max(0, this.drunkLevel - 1)
+        this.onDrunkChange(this.drunkLevel)
         this.updateDrunkUI()
         if (this.drunkLevel === 0) {
           this.removeDrunkEffects()
@@ -1491,11 +1496,7 @@ export default class MainScene extends Phaser.Scene {
   }
 
   updateDrunkUI() {
-    let beers = ''
-    for (let i = 0; i < 3; i++) {
-      beers += i < this.drunkLevel ? '🍺' : '⬜'
-    }
-    this.drunkText.setText(beers)
+    // UI теперь в React компоненте
   }
 
   updateZubkov() {
@@ -1826,16 +1827,7 @@ export default class MainScene extends Phaser.Scene {
     
     // Обновляем счетчик
     this.collectedItems++
-    this.counterText.setText(`💀 ${this.collectedItems} / ${this.totalItems}`)
     this.onItemCollected(this.collectedItems)
-    
-    // Эффект на UI
-    this.tweens.add({
-      targets: this.counterText,
-      scale: 1.3,
-      duration: 100,
-      yoyo: true
-    })
     
     // Проверяем завершение - открываем офис когда все серверы уничтожены
     if (this.collectedItems >= this.totalItems && !this.officeUnlocked) {
@@ -1903,38 +1895,7 @@ export default class MainScene extends Phaser.Scene {
   }
 
   createUI() {
-    this.uiContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(1000)
-    
-    const counterBg = this.add.rectangle(100, 30, 180, 40, 0x000000, 0.7)
-      .setStrokeStyle(2, 0xffffff)
-    
-    this.counterText = this.add.text(100, 30, `☠️ 0 / ${this.totalItems}`, {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      fill: '#ffffff'
-    }).setOrigin(0.5)
-    
-    // Здоровье
-    const healthBg = this.add.rectangle(700, 30, 120, 40, 0x000000, 0.7)
-      .setStrokeStyle(2, 0xffffff)
-    
-    this.healthText = this.add.text(700, 30, '❤️❤️❤️', {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      fill: '#ffffff'
-    }).setOrigin(0.5)
-    
-    // Индикатор опьянения
-    const drunkBg = this.add.rectangle(400, 570, 120, 30, 0x000000, 0.7)
-      .setStrokeStyle(2, 0xffcc00)
-    
-    this.drunkText = this.add.text(400, 570, '⬜⬜⬜', {
-      fontFamily: 'monospace',
-      fontSize: '18px',
-      fill: '#ffffff'
-    }).setOrigin(0.5)
-    
-    this.uiContainer.add([counterBg, this.counterText, healthBg, this.healthText, drunkBg, this.drunkText])
+    // UI теперь полностью в React компоненте
   }
 
   setupControls() {
