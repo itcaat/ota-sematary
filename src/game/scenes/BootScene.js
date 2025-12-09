@@ -39,7 +39,9 @@ export default class BootScene extends Phaser.Scene {
     this.generatePlayerSprite()
     this.generateZombieSprite()
     this.generateZubkovSprite()
+    this.generateFriendlyNPCSprite()
     this.generateServerSprite()
+    this.generateBuildingSprites()
     this.generateGraveMound()
     this.generateGraveyardSprites()
     this.generatePrincessSprite()
@@ -365,6 +367,68 @@ export default class BootScene extends Phaser.Scene {
     ctx.fillRect(26, 44, 8, 3)
   }
 
+  generateFriendlyNPCSprite() {
+    const colors = [
+      { shirt: '#2196f3', name: 'karpov' },    // Синяя
+      { shirt: '#9c27b0', name: 'rukavkov' },  // Фиолетовая
+      { shirt: '#ff9800', name: 'mazalov' },   // Оранжевая
+      { shirt: '#4caf50', name: 'sergeev' },   // Зелёная
+      { shirt: '#e91e63', name: 'sindov' },    // Розовая
+    ]
+    
+    colors.forEach(config => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 32
+      canvas.height = 32
+      const ctx = canvas.getContext('2d')
+      ctx.imageSmoothingEnabled = false
+      
+      // Тень
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'
+      ctx.beginPath()
+      ctx.ellipse(16, 28, 8, 3, 0, 0, Math.PI * 2)
+      ctx.fill()
+      
+      // Тело (футболка)
+      ctx.fillStyle = config.shirt
+      ctx.fillRect(10, 12, 12, 12)
+      
+      // Контур
+      ctx.strokeStyle = '#000'
+      ctx.lineWidth = 1
+      ctx.strokeRect(10, 12, 12, 12)
+      
+      // Голова
+      ctx.fillStyle = '#ffcc99'
+      ctx.fillRect(11, 4, 10, 9)
+      
+      // Волосы
+      ctx.fillStyle = '#5d4037'
+      ctx.fillRect(11, 3, 10, 3)
+      
+      // Глаза (добрые)
+      ctx.fillStyle = '#000'
+      ctx.fillRect(13, 7, 2, 2)
+      ctx.fillRect(17, 7, 2, 2)
+      
+      // Улыбка
+      ctx.fillStyle = '#e57373'
+      ctx.fillRect(14, 10, 4, 1)
+      
+      // Руки
+      ctx.fillStyle = '#ffcc99'
+      ctx.fillRect(7, 13, 3, 8)
+      ctx.fillRect(22, 13, 3, 8)
+      
+      // Ноги
+      ctx.fillStyle = '#37474f'
+      ctx.fillRect(11, 24, 4, 5)
+      ctx.fillRect(17, 24, 4, 5)
+      
+      this.textures.addCanvas(`npc_${config.name}`, canvas)
+    })
+  }
+
   generateServerSprite() {
     const canvas = document.createElement('canvas')
     canvas.width = 32
@@ -448,6 +512,354 @@ export default class BootScene extends Phaser.Scene {
     eCtx.fillRect(22, 27, 2, 2)
     
     this.textures.addCanvas('server_error', errorCanvas)
+  }
+
+  generateBuildingSprites() {
+    // Датацентр Selectel - вид сверху без крыши
+    this.createSelectelBuilding()
+    
+    // Датацентр Yandex - вид сверху без крыши
+    this.createYandexBuilding()
+    
+    // Офис - вид сверху без крыши
+    this.createOfficeBuilding()
+  }
+
+  createSelectelBuilding() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 200
+    canvas.height = 180
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    const wallThickness = 12
+    
+    // Тень здания
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'
+    ctx.fillRect(10, 10, 190, 170)
+    
+    // Пол датацентра (тёмно-серый кафель)
+    ctx.fillStyle = '#2a2a35'
+    ctx.fillRect(wallThickness, wallThickness, 200 - wallThickness*2, 180 - wallThickness*2)
+    
+    // Сетка пола
+    ctx.strokeStyle = '#3a3a45'
+    ctx.lineWidth = 1
+    for (let i = 0; i < 10; i++) {
+      ctx.beginPath()
+      ctx.moveTo(wallThickness, wallThickness + i * 18)
+      ctx.lineTo(200 - wallThickness, wallThickness + i * 18)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(wallThickness + i * 20, wallThickness)
+      ctx.lineTo(wallThickness + i * 20, 180 - wallThickness)
+      ctx.stroke()
+    }
+    
+    // Серверные стойки (вид сверху)
+    const serverColors = ['#1a1a2a', '#222233', '#1a1a2a']
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const sx = 25 + col * 55
+        const sy = 30 + row * 45
+        
+        // Стойка
+        ctx.fillStyle = serverColors[col % 3]
+        ctx.fillRect(sx, sy, 45, 35)
+        
+        // Рама стойки
+        ctx.strokeStyle = '#4a4a5a'
+        ctx.lineWidth = 2
+        ctx.strokeRect(sx, sy, 45, 35)
+        
+        // Мигающие индикаторы
+        for (let led = 0; led < 6; led++) {
+          const colors = ['#00ff00', '#00ff00', '#ffff00', '#00ff00', '#ff0000', '#00ff00']
+          ctx.fillStyle = colors[led]
+          ctx.fillRect(sx + 5 + led * 6, sy + 5, 4, 3)
+          ctx.fillRect(sx + 5 + led * 6, sy + 12, 4, 3)
+          ctx.fillRect(sx + 5 + led * 6, sy + 19, 4, 3)
+          ctx.fillRect(sx + 5 + led * 6, sy + 26, 4, 3)
+        }
+      }
+    }
+    
+    // Кондиционер (вид сверху)
+    ctx.fillStyle = '#5a6a5a'
+    ctx.fillRect(150, 25, 35, 25)
+    ctx.strokeStyle = '#7a8a7a'
+    ctx.strokeRect(150, 25, 35, 25)
+    // Вентилятор
+    ctx.beginPath()
+    ctx.arc(167, 37, 8, 0, Math.PI * 2)
+    ctx.fillStyle = '#3a4a3a'
+    ctx.fill()
+    ctx.strokeStyle = '#8a9a8a'
+    ctx.stroke()
+    
+    // Стены (толстые, вид сверху)
+    ctx.fillStyle = '#3d5a4e'
+    // Верхняя стена
+    ctx.fillRect(0, 0, 200, wallThickness)
+    // Нижняя стена
+    ctx.fillRect(0, 180 - wallThickness, 200, wallThickness)
+    // Левая стена
+    ctx.fillRect(0, 0, wallThickness, 180)
+    // Правая стена
+    ctx.fillRect(200 - wallThickness, 0, wallThickness, 180)
+    
+    // Текстура стен (кирпичи)
+    ctx.fillStyle = '#4d6a5e'
+    for (let i = 0; i < 16; i++) {
+      ctx.fillRect(i * 12 + 2, 2, 10, 4)
+      ctx.fillRect(i * 12 + 2, 180 - wallThickness + 2, 10, 4)
+    }
+    
+    // Дверной проём (внизу)
+    ctx.fillStyle = '#2a2a35'
+    ctx.fillRect(80, 180 - wallThickness, 40, wallThickness)
+    // Порог
+    ctx.fillStyle = '#5a5a6a'
+    ctx.fillRect(82, 180 - wallThickness, 36, 3)
+    
+    // Надпись SELECTEL на стене
+    ctx.fillStyle = '#00ff66'
+    ctx.font = 'bold 14px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText('SELECTEL', 100, 175)
+    
+    // Зелёное свечение у надписи
+    ctx.fillStyle = 'rgba(0,255,100,0.2)'
+    ctx.fillRect(50, 160, 100, 15)
+    
+    this.textures.addCanvas('building_selectel', canvas)
+  }
+
+  createYandexBuilding() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 200
+    canvas.height = 180
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    const wallThickness = 12
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'
+    ctx.fillRect(10, 10, 190, 170)
+    
+    // Пол (белая плитка)
+    ctx.fillStyle = '#e8e8e0'
+    ctx.fillRect(wallThickness, wallThickness, 200 - wallThickness*2, 180 - wallThickness*2)
+    
+    // Шахматный узор пола
+    ctx.fillStyle = '#d0d0c8'
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 10; col++) {
+        if ((row + col) % 2 === 0) {
+          ctx.fillRect(wallThickness + col * 18, wallThickness + row * 18, 18, 18)
+        }
+      }
+    }
+    
+    // Серверные стойки Яндекса (жёлто-чёрные)
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 4; col++) {
+        const sx = 20 + col * 45
+        const sy = 25 + row * 55
+        
+        // Стойка
+        ctx.fillStyle = '#1a1a1a'
+        ctx.fillRect(sx, sy, 38, 45)
+        
+        // Жёлтая полоса Яндекса
+        ctx.fillStyle = '#ffcc00'
+        ctx.fillRect(sx, sy, 38, 6)
+        
+        // Индикаторы
+        for (let led = 0; led < 4; led++) {
+          ctx.fillStyle = led % 2 === 0 ? '#ffcc00' : '#00ff00'
+          ctx.fillRect(sx + 5 + led * 8, sy + 12, 5, 4)
+          ctx.fillRect(sx + 5 + led * 8, sy + 22, 5, 4)
+          ctx.fillRect(sx + 5 + led * 8, sy + 32, 5, 4)
+        }
+        
+        ctx.strokeStyle = '#ffcc00'
+        ctx.lineWidth = 2
+        ctx.strokeRect(sx, sy, 38, 45)
+      }
+    }
+    
+    // Рабочее место оператора
+    ctx.fillStyle = '#4a4a4a'
+    ctx.fillRect(140, 130, 45, 30)
+    // Монитор
+    ctx.fillStyle = '#2a4a6a'
+    ctx.fillRect(150, 135, 25, 18)
+    // Клавиатура
+    ctx.fillStyle = '#3a3a3a'
+    ctx.fillRect(148, 155, 30, 8)
+    
+    // Стены (жёлтые)
+    ctx.fillStyle = '#ffcc00'
+    ctx.fillRect(0, 0, 200, wallThickness)
+    ctx.fillRect(0, 180 - wallThickness, 200, wallThickness)
+    ctx.fillRect(0, 0, wallThickness, 180)
+    ctx.fillRect(200 - wallThickness, 0, wallThickness, 180)
+    
+    // Красная полоса на стенах
+    ctx.fillStyle = '#cc0000'
+    ctx.fillRect(0, 0, 200, 3)
+    ctx.fillRect(0, 180 - 3, 200, 3)
+    ctx.fillRect(0, 0, 3, 180)
+    ctx.fillRect(200 - 3, 0, 3, 180)
+    
+    // Дверной проём
+    ctx.fillStyle = '#e8e8e0'
+    ctx.fillRect(80, 180 - wallThickness, 40, wallThickness)
+    ctx.fillStyle = '#aa0000'
+    ctx.fillRect(82, 180 - 3, 36, 3)
+    
+    // Логотип Яндекса
+    ctx.fillStyle = '#ff0000'
+    ctx.fillRect(90, 160, 20, 15)
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 12px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText('Я', 100, 172)
+    
+    // Надпись
+    ctx.fillStyle = '#000000'
+    ctx.font = 'bold 12px monospace'
+    ctx.fillText('YANDEX', 100, 158)
+    
+    this.textures.addCanvas('building_yandex', canvas)
+  }
+
+  createOfficeBuilding() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 220
+    canvas.height = 200
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    const wallThickness = 14
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'
+    ctx.fillRect(12, 12, 208, 188)
+    
+    // Пол офиса (ковролин)
+    ctx.fillStyle = '#4a5568'
+    ctx.fillRect(wallThickness, wallThickness, 220 - wallThickness*2, 200 - wallThickness*2)
+    
+    // Текстура ковролина
+    for (let i = 0; i < 500; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? '#3a4558' : '#5a6578'
+      ctx.fillRect(
+        wallThickness + Math.random() * (220 - wallThickness*2),
+        wallThickness + Math.random() * (200 - wallThickness*2),
+        2, 2
+      )
+    }
+    
+    // Рабочие столы (open space)
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 3; col++) {
+        const dx = 25 + col * 65
+        const dy = 30 + row * 70
+        
+        // Стол
+        ctx.fillStyle = '#8b7355'
+        ctx.fillRect(dx, dy, 55, 30)
+        ctx.strokeStyle = '#6b5335'
+        ctx.lineWidth = 2
+        ctx.strokeRect(dx, dy, 55, 30)
+        
+        // Монитор
+        ctx.fillStyle = '#2a3a4a'
+        ctx.fillRect(dx + 15, dy + 5, 25, 16)
+        // Экран светится
+        ctx.fillStyle = '#4a8acc'
+        ctx.fillRect(dx + 17, dy + 7, 21, 12)
+        
+        // Клавиатура
+        ctx.fillStyle = '#3a3a3a'
+        ctx.fillRect(dx + 12, dy + 23, 20, 5)
+        
+        // Стул (вид сверху)
+        ctx.fillStyle = '#2a2a2a'
+        ctx.beginPath()
+        ctx.arc(dx + 27, dy + 45, 10, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = '#1a5a8a'
+        ctx.beginPath()
+        ctx.arc(dx + 27, dy + 45, 7, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+    
+    // Кофемашина
+    ctx.fillStyle = '#2a2a2a'
+    ctx.fillRect(180, 25, 20, 25)
+    ctx.fillStyle = '#aa4444'
+    ctx.fillRect(182, 27, 16, 8)
+    
+    // Кулер с водой
+    ctx.fillStyle = '#e0e0e0'
+    ctx.fillRect(180, 60, 18, 30)
+    ctx.fillStyle = '#4a9aff'
+    ctx.fillRect(182, 62, 14, 15)
+    
+    // Принтер
+    ctx.fillStyle = '#4a4a4a'
+    ctx.fillRect(20, 160, 35, 25)
+    ctx.fillStyle = '#2a2a2a'
+    ctx.fillRect(22, 162, 31, 10)
+    
+    // Переговорка (отдельная комната)
+    ctx.fillStyle = '#5a6578'
+    ctx.fillRect(140, 130, 60, 50)
+    ctx.strokeStyle = '#3a4558'
+    ctx.lineWidth = 3
+    ctx.strokeRect(140, 130, 60, 50)
+    // Стол переговорной
+    ctx.fillStyle = '#6b5335'
+    ctx.fillRect(150, 145, 40, 20)
+    
+    // Стены (кирпичные)
+    ctx.fillStyle = '#8b5a3a'
+    ctx.fillRect(0, 0, 220, wallThickness)
+    ctx.fillRect(0, 200 - wallThickness, 220, wallThickness)
+    ctx.fillRect(0, 0, wallThickness, 200)
+    ctx.fillRect(220 - wallThickness, 0, wallThickness, 200)
+    
+    // Кирпичная текстура стен
+    ctx.fillStyle = '#9b6a4a'
+    for (let i = 0; i < 16; i++) {
+      ctx.fillRect(i * 14 + 2, 2, 11, 5)
+      ctx.fillRect(i * 14 + 2, 200 - wallThickness + 2, 11, 5)
+    }
+    
+    // Дверной проём
+    ctx.fillStyle = '#4a5568'
+    ctx.fillRect(90, 200 - wallThickness, 40, wallThickness)
+    // Коврик
+    ctx.fillStyle = '#3a8a5a'
+    ctx.fillRect(92, 200 - wallThickness, 36, 5)
+    
+    // Вывеска OTA
+    ctx.fillStyle = '#1a4a8a'
+    ctx.fillRect(75, 180, 70, 14)
+    ctx.strokeStyle = '#3a8afa'
+    ctx.lineWidth = 2
+    ctx.strokeRect(75, 180, 70, 14)
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 11px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText('OTA OFFICE', 110, 191)
+    
+    this.textures.addCanvas('building_office', canvas)
   }
 
   generateGraveMound() {

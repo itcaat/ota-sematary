@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import SoundManager from '../SoundManager'
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
@@ -18,9 +19,31 @@ export default class MainScene extends Phaser.Scene {
   }
 
   create() {
+    // Инициализация звуков
+    this.sound = new SoundManager()
+    this.sound.init()
+    
+    // Активация звука и музыки при первом клике
+    this.input.once('pointerdown', () => {
+      this.sound.resume()
+      this.sound.startMusic()
+    })
+    
+    // Также при нажатии любой клавиши
+    this.input.keyboard.once('keydown', () => {
+      this.sound.resume()
+      this.sound.startMusic()
+    })
+    
+    // Состояние укрытия
+    this.isHiding = false
+    this.currentBuilding = null
+    
     this.createMap()
+    this.createBuildings()
     this.createPlayer()
     this.createZombies()
+    this.createFriendlyNPCs()
     this.createBeers()
     this.createGraveyardItems()
     this.createPrincess()
@@ -94,6 +117,103 @@ export default class MainScene extends Phaser.Scene {
     this.physics.world.setBounds(32, 32, mapWidth - 64, mapHeight - 64)
   }
 
+  createBuildings() {
+    this.buildings = []
+    
+    const buildingConfigs = [
+      { type: 'selectel', x: 200, y: 190, name: 'Датацентр Selectel', width: 200, height: 180 },
+      { type: 'yandex', x: 1400, y: 190, name: 'Датацентр Yandex', width: 200, height: 180 },
+      { type: 'office', x: 800, y: 1000, name: 'Офис OTA', width: 220, height: 200 },
+    ]
+    
+    buildingConfigs.forEach(config => {
+      const building = this.add.sprite(config.x, config.y, `building_${config.type}`)
+      building.setOrigin(0.5, 0.5)
+      building.setDepth(4)
+      
+      // Физические стены здания (непроходимые границы)
+      const wallThickness = 15
+      const hw = config.width / 2
+      const hh = config.height / 2
+      
+      // Создаём 4 стены как физические объекты
+      building.walls = []
+      
+      // Верхняя стена
+      const topWall = this.add.rectangle(config.x, config.y - hh + wallThickness/2, config.width, wallThickness, 0x000000, 0)
+      this.physics.add.existing(topWall, true)
+      building.walls.push(topWall)
+      
+      // Левая стена
+      const leftWall = this.add.rectangle(config.x - hw + wallThickness/2, config.y, wallThickness, config.height, 0x000000, 0)
+      this.physics.add.existing(leftWall, true)
+      building.walls.push(leftWall)
+      
+      // Правая стена
+      const rightWall = this.add.rectangle(config.x + hw - wallThickness/2, config.y, wallThickness, config.height, 0x000000, 0)
+      this.physics.add.existing(rightWall, true)
+      building.walls.push(rightWall)
+      
+      // Нижняя стена (с проёмом для двери)
+      const doorWidth = 40
+      const bottomLeftWall = this.add.rectangle(
+        config.x - hw/2 - doorWidth/4, 
+        config.y + hh - wallThickness/2, 
+        hw - doorWidth/2, 
+        wallThickness, 
+        0x000000, 0
+      )
+      this.physics.add.existing(bottomLeftWall, true)
+      building.walls.push(bottomLeftWall)
+      
+      const bottomRightWall = this.add.rectangle(
+        config.x + hw/2 + doorWidth/4, 
+        config.y + hh - wallThickness/2, 
+        hw - doorWidth/2, 
+        wallThickness, 
+        0x000000, 0
+      )
+      this.physics.add.existing(bottomRightWall, true)
+      building.walls.push(bottomRightWall)
+      
+      // Зона входа (у двери здания)
+      const zone = this.add.zone(config.x, config.y + hh, 60, 30)
+      this.physics.world.enable(zone)
+      zone.body.setAllowGravity(false)
+      zone.body.setImmovable(true)
+      
+      // Текст-подсказка
+      const hint = this.add.text(config.x, config.y - hh - 25, `🏢 ${config.name}\n↓ ВХОД`, {
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        fill: '#00ff00',
+        stroke: '#000000',
+        strokeThickness: 3,
+        align: 'center',
+        shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 0, fill: true }
+      }).setOrigin(0.5).setDepth(100).setAlpha(0)
+      
+      building.zone = zone
+      building.hint = hint
+      building.buildingName = config.name
+      building.buildingType = config.type
+      building.buildingWidth = config.width
+      building.buildingHeight = config.height
+      
+      this.buildings.push(building)
+    })
+    
+    // Индикатор укрытия
+    this.hidingText = this.add.text(400, 550, '', {
+      fontFamily: 'monospace',
+      fontSize: '16px',
+      fill: '#00ff00',
+      stroke: '#000000',
+      strokeThickness: 3,
+      shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 0, fill: true }
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000).setAlpha(0)
+  }
+
   createPlayer() {
     this.player = this.physics.add.sprite(200, 600, 'player')
     this.player.setCollideWorldBounds(true)
@@ -103,6 +223,13 @@ export default class MainScene extends Phaser.Scene {
     
     // Коллизия со стенами
     this.physics.add.collider(this.player, this.walls)
+    
+    // Коллизия со стенами зданий
+    this.buildings.forEach(building => {
+      building.walls.forEach(wall => {
+        this.physics.add.collider(this.player, wall)
+      })
+    })
     
     // Текст OTAOPS над игроком
     this.saloText = this.add.text(0, 0, 'OTAOPS', {
@@ -163,11 +290,64 @@ export default class MainScene extends Phaser.Scene {
     // Коллизия зомби со стенами
     this.physics.add.collider(this.zombies, this.walls)
     
+    // Коллизия зомби со стенами зданий
+    this.buildings.forEach(building => {
+      building.walls.forEach(wall => {
+        this.physics.add.collider(this.zombies, wall)
+      })
+    })
+    
     // Коллизия зомби с игроком
     this.physics.add.overlap(this.player, this.zombies, this.zombieHitPlayer, null, this)
     
+    // Периодические звуки зомби
+    this.time.addEvent({
+      delay: 3000,
+      callback: this.playRandomZombieSound,
+      callbackScope: this,
+      loop: true
+    })
+    
     // Создаём босса Zubkov
     this.createZubkov()
+  }
+
+  playRandomZombieSound() {
+    if (this.gameComplete) return
+    
+    // Находим ближайшего зомби к игроку
+    let closestZombie = null
+    let closestDist = Infinity
+    
+    this.zombies.children.each(zombie => {
+      const dist = Phaser.Math.Distance.Between(
+        zombie.x, zombie.y, this.player.x, this.player.y
+      )
+      if (dist < closestDist && dist < 400) {
+        closestDist = dist
+        closestZombie = zombie
+      }
+    })
+    
+    // Также проверяем Zubkov
+    if (this.zubkov && this.zubkov.active) {
+      const zubkovDist = Phaser.Math.Distance.Between(
+        this.zubkov.x, this.zubkov.y, this.player.x, this.player.y
+      )
+      if (zubkovDist < closestDist && zubkovDist < 400) {
+        closestDist = zubkovDist
+        closestZombie = this.zubkov
+      }
+    }
+    
+    if (closestZombie) {
+      const data = closestZombie.zombieData
+      if (data && data.state === 'chase') {
+        this.sound.playZombieGrowl()
+      } else {
+        this.sound.playZombieMoan()
+      }
+    }
   }
 
   createZubkov() {
@@ -205,6 +385,14 @@ export default class MainScene extends Phaser.Scene {
     
     // Коллизии
     this.physics.add.collider(this.zubkov, this.walls)
+    
+    // Коллизия Zubkov со стенами зданий
+    this.buildings.forEach(building => {
+      building.walls.forEach(wall => {
+        this.physics.add.collider(this.zubkov, wall)
+      })
+    })
+    
     this.physics.add.overlap(this.player, this.zubkov, this.zubkovHitPlayer, null, this)
   }
 
@@ -240,6 +428,9 @@ export default class MainScene extends Phaser.Scene {
     
     // Сильная тряска
     this.cameras.main.shake(300, 0.02)
+    
+    // Звук
+    this.sound.playZubkov()
     
     // Zubkov говорит
     const shout = this.add.text(zubkov.x, zubkov.y - 50, '💀 УВОЛЕН!', {
@@ -292,6 +483,9 @@ export default class MainScene extends Phaser.Scene {
       }
     })
     
+    // Звук урона
+    this.sound.playHurt()
+    
     // Эффект удара
     this.cameras.main.shake(200, 0.01)
     
@@ -314,7 +508,13 @@ export default class MainScene extends Phaser.Scene {
     this.player.setVelocity(0)
     this.player.setTint(0xff0000)
     
-    const gameOverText = this.add.text(400, 250, '💀 GAME OVER 💀', {
+    // Останавливаем музыку
+    this.sound.stopMusic()
+    
+    // Звук Game Over
+    this.sound.playGameOver()
+    
+    const gameOverText = this.add.text(400, 250, '💼 ТЫ УВОЛЕН 💼', {
       fontFamily: 'monospace',
       fontSize: '48px',
       fill: '#ff0000',
@@ -322,7 +522,7 @@ export default class MainScene extends Phaser.Scene {
       strokeThickness: 6
     }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
     
-    const restartText = this.add.text(400, 320, 'Нажмите R для рестарта', {
+    const restartText = this.add.text(400, 320, 'Нажмите R чтобы попробовать снова', {
       fontFamily: 'monospace',
       fontSize: '20px',
       fill: '#ffffff'
@@ -341,14 +541,16 @@ export default class MainScene extends Phaser.Scene {
       )
       
       // Определяем состояние
+      // Если игрок прячется - зомби его не видит
       if (data.state === 'patrol') {
-        if (distToPlayer < data.detectionRange) {
+        if (distToPlayer < data.detectionRange && !this.isHiding) {
           data.state = 'chase'
           // Звук обнаружения (визуальный эффект)
           this.showAlertIcon(zombie)
         }
       } else if (data.state === 'chase') {
-        if (distToPlayer > data.loseRange) {
+        // Если игрок спрятался или далеко - теряем его
+        if (distToPlayer > data.loseRange || this.isHiding) {
           data.state = 'return'
         }
       } else if (data.state === 'return') {
@@ -358,11 +560,11 @@ export default class MainScene extends Phaser.Scene {
         if (distToHome < 10) {
           data.state = 'patrol'
         }
-        if (distToPlayer < data.detectionRange) {
-          data.state = 'chase'
-          this.showAlertIcon(zombie)
-        }
+      if (distToPlayer < data.detectionRange && !this.isHiding) {
+        data.state = 'chase'
+        this.showAlertIcon(zombie)
       }
+    }
       
       // Движение в зависимости от состояния
       let velocityX = 0
@@ -415,6 +617,137 @@ export default class MainScene extends Phaser.Scene {
     })
   }
 
+  createFriendlyNPCs() {
+    // Саркастические "подбадривающие" фразы
+    this.sarcasticPhrases = [
+      "Отлично справляешься! 👍\n(нет)",
+      "Ты точно DevOps? 🤔",
+      "Может тебе в PM?",
+      "Сервера сами\nне упадут!",
+      "Красавчик! 💪\n(сарказм)",
+      "Так держать!\n...подальше от прода",
+      "Верю в тебя!\n(на самом деле нет)",
+      "Ещё чуть-чуть!\n...до увольнения",
+      "Молодец! 🎉\n(это ирония)",
+      "Ты лучший! 🏆\n...в ломании серверов",
+      "Супер! Осталось\nвсего 100500 тасков",
+      "Не сдавайся!\n(хотя стоило бы)",
+      "Классно!\nZubkov доволен\n(нет)",
+      "Ты справишься!\n...когда-нибудь",
+      "Вот это скилл! 😎\n(шутка)",
+      "Профессионал! 💼\n(по версии мамы)",
+      "Так и надо!\n(на самом деле нет)",
+      "Огонь! 🔥\n(как и сервера)",
+      "Легенда! 🌟\n(в своих мечтах)",
+      "Бог DevOps! ⚡\n(богохульство)",
+    ]
+    
+    // Конфигурация NPC
+    const npcs = [
+      { name: 'karpov', x: 200, y: 300 },
+      { name: 'rukavkov', x: 550, y: 550 },
+      { name: 'mazalov', x: 950, y: 350 },
+      { name: 'sergeev', x: 1300, y: 600 },
+      { name: 'sindov', x: 750, y: 900 },
+    ]
+    
+    this.friendlyNPCs = []
+    
+    npcs.forEach(config => {
+      const npc = this.add.sprite(config.x, config.y, `npc_${config.name}`)
+      npc.setOrigin(0.5, 0.5)
+      npc.setDepth(10)
+      
+      // Имя над NPC
+      const nameText = this.add.text(config.x, config.y - 25, config.name, {
+        fontFamily: 'monospace',
+        fontSize: '10px',
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 2
+      }).setOrigin(0.5).setDepth(100)
+      
+      // Текст фразы (изначально пустой)
+      const phraseText = this.add.text(config.x, config.y - 45, '', {
+        fontFamily: 'monospace',
+        fontSize: '9px',
+        fill: '#ffeb3b',
+        stroke: '#000000',
+        strokeThickness: 2,
+        align: 'center',
+        wordWrap: { width: 120 }
+      }).setOrigin(0.5).setDepth(100)
+      
+      npc.nameText = nameText
+      npc.phraseText = phraseText
+      npc.npcName = config.name
+      
+      // Анимация покачивания
+      this.tweens.add({
+        targets: npc,
+        y: npc.y - 3,
+        duration: 1000 + Math.random() * 500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      })
+      
+      this.friendlyNPCs.push(npc)
+      
+      // Запускаем фразы для каждого NPC отдельно с разным интервалом
+      this.time.addEvent({
+        delay: 1000 + Math.random() * 2000, // Начальная задержка
+        callback: () => this.startNPCPhrases(npc),
+        callbackScope: this
+      })
+    })
+  }
+
+  startNPCPhrases(npc) {
+    // Показать первую фразу
+    this.showNPCPhrase(npc)
+    
+    // Повторять каждые 5-7 секунд
+    this.time.addEvent({
+      delay: 5000 + Math.random() * 2000,
+      callback: () => this.showNPCPhrase(npc),
+      callbackScope: this,
+      loop: true
+    })
+  }
+
+  showNPCPhrase(npc) {
+    if (this.gameComplete) return
+    
+    // Выбираем случайную фразу
+    const phrase = Phaser.Utils.Array.GetRandom(this.sarcasticPhrases)
+    
+    // Показываем фразу
+    npc.phraseText.setText(phrase)
+    npc.phraseText.setAlpha(1)
+    npc.phraseText.y = npc.y - 55
+    
+    // Появление
+    this.tweens.add({
+      targets: npc.phraseText,
+      alpha: 1,
+      y: npc.y - 60,
+      duration: 300,
+      ease: 'Power2'
+    })
+    
+    // Исчезновение через 5 секунд
+    this.time.delayedCall(4500, () => {
+      this.tweens.add({
+        targets: npc.phraseText,
+        alpha: 0,
+        y: npc.phraseText.y - 15,
+        duration: 500,
+        ease: 'Power2'
+      })
+    })
+  }
+
   createBeers() {
     this.beers = this.physics.add.group()
     
@@ -455,6 +788,9 @@ export default class MainScene extends Phaser.Scene {
   drinkBeer(player, beer) {
     // Удаляем бутылку
     beer.destroy()
+    
+    // Звук
+    this.sound.playBeer()
     
     // Увеличиваем опьянение
     this.drunkLevel = Math.min(this.drunkLevel + 1, 3)
@@ -529,13 +865,14 @@ export default class MainScene extends Phaser.Scene {
     )
     
     // Определяем состояние
+    // Zubkov тоже не видит спрятавшегося игрока
     if (data.state === 'patrol') {
-      if (distToPlayer < data.detectionRange) {
+      if (distToPlayer < data.detectionRange && !this.isHiding) {
         data.state = 'chase'
         this.showZubkovAlert()
       }
     } else if (data.state === 'chase') {
-      if (distToPlayer > data.loseRange) {
+      if (distToPlayer > data.loseRange || this.isHiding) {
         data.state = 'return'
       }
     } else if (data.state === 'return') {
@@ -545,7 +882,7 @@ export default class MainScene extends Phaser.Scene {
       if (distToHome < 10) {
         data.state = 'patrol'
       }
-      if (distToPlayer < data.detectionRange) {
+      if (distToPlayer < data.detectionRange && !this.isHiding) {
         data.state = 'chase'
         this.showZubkovAlert()
       }
@@ -598,6 +935,8 @@ export default class MainScene extends Phaser.Scene {
   }
 
   showZubkovAlert() {
+    this.sound.playAlert()
+    
     const alert = this.add.text(this.zubkov.x, this.zubkov.y - 50, '🔥 ТЫ УВОЛЕН!', {
       fontSize: '14px',
       fontFamily: 'monospace',
@@ -617,6 +956,8 @@ export default class MainScene extends Phaser.Scene {
   }
 
   showAlertIcon(zombie) {
+    this.sound.playAlert()
+    
     const alert = this.add.text(zombie.x, zombie.y - 30, '❗', {
       fontSize: '24px'
     }).setOrigin(0.5).setDepth(200)
@@ -747,6 +1088,9 @@ export default class MainScene extends Phaser.Scene {
     // Эффект превращения
     this.createServerDeathEffect(x, y)
     
+    // Звук
+    this.sound.playServerDeath()
+    
     // Обновляем счетчик
     this.collectedItems++
     this.counterText.setText(`💀 ${this.collectedItems} / ${this.totalItems}`)
@@ -867,6 +1211,53 @@ export default class MainScene extends Phaser.Scene {
       down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+    }
+    
+  }
+
+  checkBuildingOverlap() {
+    // Автоматическая проверка - игрок внутри здания или нет
+    let insideBuilding = null
+    
+    for (const building of this.buildings) {
+      const hw = building.buildingWidth / 2 - 15 // минус толщина стен
+      const hh = building.buildingHeight / 2 - 15
+      
+      if (this.player.x > building.x - hw && 
+          this.player.x < building.x + hw &&
+          this.player.y > building.y - hh && 
+          this.player.y < building.y + hh) {
+        insideBuilding = building
+        break
+      }
+    }
+    
+    // Вошёл в здание
+    if (insideBuilding && !this.isHiding) {
+      this.isHiding = true
+      this.currentBuilding = insideBuilding
+      
+      // Здание становится полупрозрачным
+      insideBuilding.setAlpha(0.5)
+      
+      // Показываем индикатор
+      this.hidingText.setText(`🏢 В УКРЫТИИ: ${insideBuilding.buildingName}`)
+      this.hidingText.setAlpha(1)
+      
+      // Звук входа
+      this.sound.playServerDeath()
+    }
+    // Вышел из здания
+    else if (!insideBuilding && this.isHiding) {
+      if (this.currentBuilding) {
+        this.currentBuilding.setAlpha(1)
+      }
+      
+      this.isHiding = false
+      this.currentBuilding = null
+      
+      // Скрываем индикатор
+      this.hidingText.setAlpha(0)
     }
   }
 
@@ -989,6 +1380,12 @@ export default class MainScene extends Phaser.Scene {
   }
 
   startFireworks() {
+    // Останавливаем фоновую музыку
+    this.sound.stopMusic()
+    
+    // Звук победы
+    this.sound.playVictory()
+    
     const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xff8800, 0xff0088]
     
     for (let i = 0; i < 20; i++) {
@@ -998,6 +1395,7 @@ export default class MainScene extends Phaser.Scene {
         const color = colors[Phaser.Math.Between(0, colors.length - 1)]
         
         this.createFirework(x, y, color)
+        this.sound.playFirework()
       })
     }
     
@@ -1122,8 +1520,34 @@ export default class MainScene extends Phaser.Scene {
     // Обновляем спрайт в зависимости от направления
     this.player.setTexture(`player_${this.playerDirection}`)
     
-    // Обновляем позицию текста SALO
+    // Обновляем позицию текста OTAOPS
     this.saloText.x = this.player.x
     this.saloText.y = this.player.y - 20
+    
+    // Обновляем позиции текстов NPC
+    this.friendlyNPCs.forEach(npc => {
+      npc.nameText.x = npc.x
+      npc.nameText.y = npc.y - 25
+    })
+    
+    // Проверяем, внутри ли игрок здания
+    this.checkBuildingOverlap()
+    
+    // Показываем подсказки зданий рядом с игроком (у входа)
+    this.buildings.forEach(building => {
+      const doorY = building.y + building.buildingHeight/2
+      const dist = Phaser.Math.Distance.Between(
+        this.player.x, this.player.y,
+        building.x, doorY
+      )
+      
+      if (dist < 100 && !this.isHiding) {
+        building.hint.setAlpha(1)
+        // Мигающий эффект подсказки
+        building.hint.setScale(1 + Math.sin(this.time.now / 200) * 0.05)
+      } else {
+        building.hint.setAlpha(0)
+      }
+    })
   }
 }
