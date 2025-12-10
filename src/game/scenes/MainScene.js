@@ -672,14 +672,6 @@ export default class MainScene extends Phaser.Scene {
       this.physics.add.overlap(this.player, this.medkits, this.collectMedkit, null, this)
     }
     
-    // Текст OTAOPS над игроком
-    this.saloText = this.add.text(0, 0, 'OTAOPS', {
-      fontFamily: 'monospace',
-      fontSize: '8px',
-      fill: '#00ff00',
-      stroke: '#000000',
-      strokeThickness: 2
-    }).setOrigin(0.5).setDepth(100)
     
     // Здоровье игрока
     this.playerHealth = 3
@@ -2361,9 +2353,6 @@ export default class MainScene extends Phaser.Scene {
     // Обновляем спрайт в зависимости от направления
     this.player.setTexture(`player_${this.playerDirection}`)
     
-    // Обновляем позицию текста OTAOPS
-    this.saloText.x = this.player.x
-    this.saloText.y = this.player.y - 20
     
     // Обновляем позиции текстов NPC
     this.friendlyNPCs.forEach(npc => {
