@@ -707,6 +707,22 @@ export default class MainScene extends Phaser.Scene {
       { x: 500, y: 1000, patrolY: [900, 1100] },
     ]
     
+    // Фразы зомби
+    const zombiePhrases = [
+      'У меня миграции упали!',
+      'У меня деплой упал!',
+      'Кубернетес не отвечает!',
+      'База данных легла!',
+      'Мониторинг красный!',
+      'Prod горит!',
+      'Диск заполнен на 99%!',
+      'VPN не поднимается!',
+      'Логи закончились!',
+      'Backup не прошёл!',
+      'Сертификат истёк!',
+      'DNS не резолвится!'
+    ]
+    
     zombiePositions.forEach((pos, index) => {
       const zombie = this.zombies.create(pos.x, pos.y, 'zombie')
       zombie.setOrigin(0.5, 0.5)
@@ -714,6 +730,17 @@ export default class MainScene extends Phaser.Scene {
       zombie.setOffset(6, 10)
       zombie.setDepth(10)
       zombie.setCollideWorldBounds(true)
+      
+      // Текст фразы
+      zombie.phraseText = this.add.text(pos.x, pos.y - 35, '', {
+        fontFamily: 'monospace',
+        fontSize: '9px',
+        fill: '#ff4444',
+        stroke: '#000000',
+        strokeThickness: 2,
+        align: 'center',
+        wordWrap: { width: 120 }
+      }).setOrigin(0.5).setDepth(11).setAlpha(0)
       
       // Данные зомби
       zombie.zombieData = {
@@ -727,7 +754,8 @@ export default class MainScene extends Phaser.Scene {
         detectionRange: 150,
         loseRange: 250,
         homeX: pos.x,
-        homeY: pos.y
+        homeY: pos.y,
+        phrase: Phaser.Math.RND.pick(zombiePhrases)
       }
     })
     
@@ -1233,11 +1261,17 @@ export default class MainScene extends Phaser.Scene {
           data.state = 'chase'
           // Звук обнаружения (визуальный эффект)
           this.showAlertIcon(zombie)
+          // Показываем фразу
+          this.showZombiePhrase(zombie)
         }
       } else if (data.state === 'chase') {
         // Если игрок спрятался или далеко - теряем его
         if (distToPlayer > data.loseRange || this.isHiding) {
           data.state = 'return'
+          // Скрываем фразу
+          if (zombie.phraseText) {
+            zombie.phraseText.setAlpha(0)
+          }
         }
       } else if (data.state === 'return') {
         const distToHome = Phaser.Math.Distance.Between(
@@ -1249,6 +1283,7 @@ export default class MainScene extends Phaser.Scene {
       if (distToPlayer < data.detectionRange && !this.isHiding) {
         data.state = 'chase'
         this.showAlertIcon(zombie)
+        this.showZombiePhrase(zombie)
       }
     }
       
@@ -1293,6 +1328,12 @@ export default class MainScene extends Phaser.Scene {
       }
       
       zombie.setTexture(`zombie_${data.direction}`)
+      
+      // Обновляем позицию текста фразы
+      if (zombie.phraseText) {
+        zombie.phraseText.x = zombie.x
+        zombie.phraseText.y = zombie.y - 35
+      }
       
       // Красный оттенок когда агрится
       if (data.state === 'chase') {
@@ -1747,6 +1788,21 @@ export default class MainScene extends Phaser.Scene {
       scale: 1.5,
       duration: 1500,
       onComplete: () => alert.destroy()
+    })
+  }
+
+  showZombiePhrase(zombie) {
+    if (!zombie.phraseText || !zombie.zombieData) return
+    
+    // Показываем фразу
+    zombie.phraseText.setText(zombie.zombieData.phrase)
+    zombie.phraseText.setAlpha(1)
+    
+    // Скрыть через 3 секунды
+    this.time.delayedCall(3000, () => {
+      if (zombie.phraseText && zombie.active) {
+        zombie.phraseText.setAlpha(0)
+      }
     })
   }
 
