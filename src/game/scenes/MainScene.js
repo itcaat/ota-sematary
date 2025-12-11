@@ -1231,7 +1231,7 @@ export default class MainScene extends Phaser.Scene {
     // Звук Game Over
     this.sound.playGameOver()
     
-    const gameOverText = this.add.text(400, 250, '💼 ТЫ УВОЛЕН 💼', {
+    const gameOverText = this.add.text(400, 250, '💼 ТЫ ВЫГОРЕЛ 💼', {
       fontFamily: 'monospace',
       fontSize: '48px',
       fill: '#ff0000',
@@ -1776,7 +1776,7 @@ export default class MainScene extends Phaser.Scene {
   showZubkovAlert() {
     this.sound.playAlert()
     
-    const alert = this.add.text(this.zubkov.x, this.zubkov.y - 50, '🔥 ТЫ УВОЛЕН!', {
+    const alert = this.add.text(this.zubkov.x, this.zubkov.y - 50, '🔥 ГДЕ МОИ РАЗРАБЫ!?', {
       fontSize: '14px',
       fontFamily: 'monospace',
       fill: '#ff0000',
