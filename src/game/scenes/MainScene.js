@@ -973,14 +973,39 @@ export default class MainScene extends Phaser.Scene {
   showZombieGirlPhrase() {
     if (!this.zombieGirl || !this.zombieGirl.active) return
     
-    const phrase = Phaser.Math.RND.pick(this.zombieGirlPhrases)
-    this.zombieGirl.phraseText.setText(phrase)
-    this.zombieGirl.phraseText.setAlpha(1)
+    // Удаляем старую фразу если есть
+    if (this.zombieGirl.activePhrase) {
+      this.zombieGirl.activePhrase.destroy()
+    }
     
-    // Скрыть через 3 секунды
-    this.time.delayedCall(3000, () => {
-      if (this.zombieGirl && this.zombieGirl.phraseText) {
-        this.zombieGirl.phraseText.setAlpha(0)
+    const phrase = Phaser.Math.RND.pick(this.zombieGirlPhrases)
+    
+    // Создаём новый текст с эффектом как у Зубкова
+    const phraseEffect = this.add.text(this.zombieGirl.x, this.zombieGirl.y - 50, phrase, {
+      fontFamily: 'monospace',
+      fontSize: '10px',
+      fill: '#ff69b4',
+      stroke: '#000000',
+      strokeThickness: 2,
+      align: 'center',
+      wordWrap: { width: 120 }
+    }).setOrigin(0.5).setDepth(200)
+    
+    // Сохраняем ссылку на фразу
+    this.zombieGirl.activePhrase = phraseEffect
+    this.zombieGirl.phraseStartY = this.zombieGirl.y - 50
+    this.zombieGirl.phraseStartTime = this.time.now
+    
+    // Анимация с эффектом Зубкова
+    this.tweens.add({
+      targets: phraseEffect,
+      alpha: 0,
+      scale: 1.5,
+      duration: 5000,
+      ease: 'Power2',
+      onComplete: () => {
+        phraseEffect.destroy()
+        this.zombieGirl.activePhrase = null
       }
     })
   }
@@ -1262,8 +1287,6 @@ export default class MainScene extends Phaser.Scene {
       if (data.state === 'patrol') {
         if (distToPlayer < data.detectionRange && !this.isHiding) {
           data.state = 'chase'
-          // Звук обнаружения (визуальный эффект)
-          this.showAlertIcon(zombie)
           // Показываем фразу
           this.showZombiePhrase(zombie)
         }
@@ -1285,7 +1308,6 @@ export default class MainScene extends Phaser.Scene {
         }
       if (distToPlayer < data.detectionRange && !this.isHiding) {
         data.state = 'chase'
-        this.showAlertIcon(zombie)
         this.showZombiePhrase(zombie)
       }
     }
@@ -1336,6 +1358,14 @@ export default class MainScene extends Phaser.Scene {
       if (zombie.phraseText) {
         zombie.phraseText.x = zombie.x
         zombie.phraseText.y = zombie.y - 35
+      }
+      
+      // Обновляем позицию активной фразы с анимацией
+      if (zombie.activePhrase && zombie.phraseStartTime) {
+        const elapsed = this.time.now - zombie.phraseStartTime
+        const offsetY = (elapsed / 5000) * 30 // Поднимается на 30px за 5 секунд
+        zombie.activePhrase.x = zombie.x
+        zombie.activePhrase.y = zombie.phraseStartY - offsetY
       }
       
       // Красный оттенок когда агрится
@@ -1449,32 +1479,41 @@ export default class MainScene extends Phaser.Scene {
   showNPCPhrase(npc) {
     if (this.gameComplete) return
     
+    // Удаляем старую фразу если есть
+    if (npc.activePhrase) {
+      npc.activePhrase.destroy()
+    }
+    
     // Выбираем случайную фразу
     const phrase = Phaser.Utils.Array.GetRandom(this.sarcasticPhrases)
     
-    // Показываем фразу
-    npc.phraseText.setText(phrase)
-    npc.phraseText.setAlpha(1)
-    npc.phraseText.y = npc.y - 55
+    // Создаём новый текст с эффектом как у Зубкова
+    const phraseEffect = this.add.text(npc.x, npc.y - 50, phrase, {
+      fontFamily: 'monospace',
+      fontSize: '10px',
+      fill: '#ffeb3b',
+      stroke: '#000000',
+      strokeThickness: 2,
+      align: 'center',
+      wordWrap: { width: 120 }
+    }).setOrigin(0.5).setDepth(200)
     
-    // Появление
+    // Сохраняем ссылку на фразу
+    npc.activePhrase = phraseEffect
+    npc.phraseStartY = npc.y - 50
+    npc.phraseStartTime = this.time.now
+    
+    // Анимация с эффектом Зубкова
     this.tweens.add({
-      targets: npc.phraseText,
-      alpha: 1,
-      y: npc.y - 60,
-      duration: 300,
-      ease: 'Power2'
-    })
-    
-    // Исчезновение через 5 секунд
-    this.time.delayedCall(4500, () => {
-      this.tweens.add({
-        targets: npc.phraseText,
-        alpha: 0,
-        y: npc.phraseText.y - 15,
-        duration: 500,
-        ease: 'Power2'
-      })
+      targets: phraseEffect,
+      alpha: 0,
+      scale: 1.5,
+      duration: 5000,
+      ease: 'Power2',
+      onComplete: () => {
+        phraseEffect.destroy()
+        npc.activePhrase = null
+      }
     })
   }
 
@@ -1680,6 +1719,14 @@ export default class MainScene extends Phaser.Scene {
     // Обновляем позицию текста
     this.zubkovText.x = this.zubkov.x
     this.zubkovText.y = this.zubkov.y - 35
+    
+    // Обновляем позицию активной фразы с анимацией
+    if (this.zubkov.activePhrase && this.zubkov.phraseStartTime) {
+      const elapsed = this.time.now - this.zubkov.phraseStartTime
+      const offsetY = (elapsed / 5000) * 30 // Поднимается на 30px за 5 секунд
+      this.zubkov.activePhrase.x = this.zubkov.x
+      this.zubkov.activePhrase.y = this.zubkov.phraseStartY - offsetY
+    }
   }
 
   updateZombieGirl() {
@@ -1771,10 +1818,23 @@ export default class MainScene extends Phaser.Scene {
     this.zombieGirl.nameText.y = this.zombieGirl.y - 28
     this.zombieGirl.phraseText.x = this.zombieGirl.x
     this.zombieGirl.phraseText.y = this.zombieGirl.y - 45
+    
+    // Обновляем позицию активной фразы с анимацией
+    if (this.zombieGirl.activePhrase && this.zombieGirl.phraseStartTime) {
+      const elapsed = this.time.now - this.zombieGirl.phraseStartTime
+      const offsetY = (elapsed / 5000) * 30 // Поднимается на 30px за 5 секунд
+      this.zombieGirl.activePhrase.x = this.zombieGirl.x
+      this.zombieGirl.activePhrase.y = this.zombieGirl.phraseStartY - offsetY
+    }
   }
 
   showZubkovAlert() {
     this.sound.playAlert()
+    
+    // Удаляем старую фразу если есть
+    if (this.zubkov.activePhrase) {
+      this.zubkov.activePhrase.destroy()
+    }
     
     const alert = this.add.text(this.zubkov.x, this.zubkov.y - 50, '🔥 ГДЕ МОИ РАЗРАБЫ!?', {
       fontSize: '14px',
@@ -1784,27 +1844,57 @@ export default class MainScene extends Phaser.Scene {
       strokeThickness: 2
     }).setOrigin(0.5).setDepth(200)
     
+    // Сохраняем ссылку на фразу
+    this.zubkov.activePhrase = alert
+    this.zubkov.phraseStartY = this.zubkov.y - 50
+    this.zubkov.phraseStartTime = this.time.now
+    
     this.tweens.add({
       targets: alert,
-      y: alert.y - 30,
       alpha: 0,
       scale: 1.5,
-      duration: 1500,
-      onComplete: () => alert.destroy()
+      duration: 5000,
+      onComplete: () => {
+        alert.destroy()
+        this.zubkov.activePhrase = null
+      }
     })
   }
 
   showZombiePhrase(zombie) {
-    if (!zombie.phraseText || !zombie.zombieData) return
+    if (!zombie.zombieData) return
     
-    // Показываем фразу
-    zombie.phraseText.setText(zombie.zombieData.phrase)
-    zombie.phraseText.setAlpha(1)
+    // Удаляем старую фразу если есть
+    if (zombie.activePhrase) {
+      zombie.activePhrase.destroy()
+    }
     
-    // Скрыть через 3 секунды
-    this.time.delayedCall(3000, () => {
-      if (zombie.phraseText && zombie.active) {
-        zombie.phraseText.setAlpha(0)
+    // Создаём новый текст с эффектом как у Зубкова
+    const phraseEffect = this.add.text(zombie.x, zombie.y - 40, zombie.zombieData.phrase, {
+      fontFamily: 'monospace',
+      fontSize: '10px',
+      fill: '#ff4444',
+      stroke: '#000000',
+      strokeThickness: 2,
+      align: 'center',
+      wordWrap: { width: 120 }
+    }).setOrigin(0.5).setDepth(200)
+    
+    // Сохраняем ссылку на фразу
+    zombie.activePhrase = phraseEffect
+    zombie.phraseStartY = zombie.y - 40
+    zombie.phraseStartTime = this.time.now
+    
+    // Анимация с эффектом Зубкова
+    this.tweens.add({
+      targets: phraseEffect,
+      alpha: 0,
+      scale: 1.5,
+      duration: 5000,
+      ease: 'Power2',
+      onComplete: () => {
+        phraseEffect.destroy()
+        zombie.activePhrase = null
       }
     })
   }
@@ -2369,6 +2459,14 @@ export default class MainScene extends Phaser.Scene {
     this.friendlyNPCs.forEach(npc => {
       npc.nameText.x = npc.x
       npc.nameText.y = npc.y - 25
+      
+      // Обновляем позицию активной фразы
+      if (npc.activePhrase && npc.phraseStartTime) {
+        const elapsed = this.time.now - npc.phraseStartTime
+        const offsetY = (elapsed / 5000) * 30 // Поднимается на 30px за 5 секунд
+        npc.activePhrase.x = npc.x
+        npc.activePhrase.y = npc.phraseStartY - offsetY
+      }
     })
     
     // Проверяем, внутри ли игрок здания
