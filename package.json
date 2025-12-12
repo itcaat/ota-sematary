@@ -9,9 +9,10 @@
     "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.87.1",
+    "phaser": "^3.80.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "phaser": "^3.80.1"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
@@ -22,4 +23,3 @@
   },
   "homepage": "https://your-username.github.io/ota-sematary"
 }
-

@@ -26,3 +26,227 @@
   background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
 }
+
+/* Кнопка выхода во время игры */
+.exit-game-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+  border: 2px solid #f44336;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+  z-index: 150;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.exit-game-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+  background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
+}
+
+.exit-game-button:active {
+  transform: translateY(0);
+}
+
+/* Leaderboard Overlay */
+.overlay-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 2400;
+  animation: fadeIn 0.3s ease;
+}
+
+.leaderboard-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2500;
+  animation: slideIn 0.3s ease;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.close-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(244, 67, 54, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 2600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-overlay:hover {
+  background: rgba(244, 67, 54, 1);
+  transform: scale(1.1) rotate(90deg);
+}
+
+.loading-screen,
+.menu-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  width: 100%;
+}
+
+.loading-screen p {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  color: #fff;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.menu-box {
+  background: rgba(26, 26, 46, 0.95);
+  border: 3px solid #4caf50;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(76, 175, 80, 0.3);
+  animation: slideIn 0.5s ease;
+}
+
+.menu-box h1 {
+  color: #4caf50;
+  font-family: 'Courier New', monospace;
+  font-size: 36px;
+  margin: 0 0 15px 0;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(76, 175, 80, 0.8), 0 0 30px rgba(76, 175, 80, 0.6);
+  }
+}
+
+.user-info {
+  color: #bbb;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  text-align: center;
+  margin: 0 0 30px 0;
+}
+
+.user-info strong {
+  color: #4caf50;
+}
+
+.user-info.anonymous {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.anonymous-badge {
+  color: #999;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.anonymous-warning {
+  color: #ff9800;
+  font-size: 12px;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.menu-button {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #666;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.menu-button:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.menu-button:active {
+  transform: translateY(0);
+}
+
+.menu-button.primary {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  border-color: #4caf50;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.menu-button.primary:hover {
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+}
+
+.menu-button.secondary {
+  background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+  border-color: #f44336;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+}
+
+.menu-button.secondary:hover {
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+}

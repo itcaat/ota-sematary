@@ -201,3 +201,72 @@
     0 2px 0 #1b5e20,
     0 4px 10px rgba(0, 0, 0, 0.4);
 }
+
+.user-info {
+  color: #bbb;
+  font-family: monospace;
+  font-size: 14px;
+  text-align: center;
+  margin: 0 0 20px 0;
+}
+
+.user-info strong {
+  color: #4caf50;
+}
+
+.user-info.anonymous {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.anonymous-badge {
+  color: #999;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.anonymous-warning {
+  color: #ff9800;
+  font-size: 12px;
+}
+
+.menu-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 12px 20px;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 2px solid #666;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  border-color: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn.exit {
+  background: linear-gradient(180deg, #f44336 0%, #c62828 100%);
+  border-color: #f44336;
+}
+
+.action-btn.exit:hover {
+  background: linear-gradient(180deg, #e53935 0%, #b71c1c 100%);
+  border-color: #e53935;
+}

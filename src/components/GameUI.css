@@ -34,6 +34,10 @@
   border-color: #f44336;
 }
 
+.ui-item.timer {
+  border-color: #2196f3;
+}
+
 .ui-hearts {
   font-size: 14px;
   letter-spacing: 2px;

@@ -1,24 +1,26 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import './Instructions.css'
 
-function Instructions() {
-  const [visible, setVisible] = useState(true)
-  
-  useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), 10000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (!visible) return null
-
+function Instructions({ onStartGame, onShowLeaderboard, onSignOut, userEmail, isAnonymous, showLeaderboard }) {
   return (
     <div className="instructions">
       <div className="instructions-content">
         <h2>
           <span className="icon">💀</span>
-          OTA: Миграция
+          OTA-SEMATARY
           <span className="icon">💀</span>
         </h2>
+        
+        {userEmail && !isAnonymous && (
+          <p className="user-info">Вы вошли как: <strong>{userEmail}</strong></p>
+        )}
+        
+        {isAnonymous && (
+          <p className="user-info anonymous">
+            <span className="anonymous-badge">👤 Анонимный режим</span>
+            <span className="anonymous-warning">Результат не будет сохранён</span>
+          </p>
+        )}
         
         <div className="tasks">
           <h3>📋 ЗАДАНИЯ:</h3>
@@ -48,12 +50,23 @@ function Instructions() {
           <p>🧟 Зубков - босс! Наносит 2 урона!</p>
           <p>🏢 Прячься в датацентрах</p>
           <p>🏥 Аптечки восстанавливают жизни</p>
-          <p>🍺 Пей пиво, но не злоупотребляй!</p>
+          <p>🍺 Пей пиво для скорости, 💊 энтеросгель чтобы протрезветь</p>
         </div>
         
-        <button className="start-btn" onClick={() => setVisible(false)}>
-          НАЧАТЬ МИГРАЦИЮ
+        <button className="start-btn" onClick={onStartGame}>
+          🚀 НАЧАТЬ ИГРУ
         </button>
+        
+        <div className="menu-actions">
+          {!isAnonymous && (
+            <button className="action-btn" onClick={onShowLeaderboard}>
+              🏆 {showLeaderboard ? 'Скрыть рейтинг' : 'Показать рейтинг'}
+            </button>
+          )}
+          <button className="action-btn exit" onClick={onSignOut}>
+            {isAnonymous ? '🏠 Вернуться к входу' : '🚪 Выйти'}
+          </button>
+        </div>
       </div>
     </div>
   )
