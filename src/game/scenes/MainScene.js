@@ -8,6 +8,7 @@ import { ServerTransferSystem } from '../systems/ServerTransferSystem'
 import { GraveyardSystem } from '../systems/GraveyardSystem'
 import { BeerSystem } from '../systems/BeerSystem'
 import { EnterosgelSystem } from '../systems/EnterosgelSystem'
+import { MineSystem } from '../systems/MineSystem'
 import { PrincessSystem } from '../systems/PrincessSystem'
 import { CollisionSystem } from '../systems/CollisionSystem'
 
@@ -24,6 +25,7 @@ export default class MainScene extends Phaser.Scene {
     this.onDrunkChange = data.onDrunkChange || (() => {})
     this.onHealthChange = data.onHealthChange || (() => {})
     this.onTimeUpdate = data.onTimeUpdate || (() => {})
+    this.onMineCountChange = data.onMineCountChange || (() => {})
     this.gameComplete = false
     this.gameTime = 0
   }
@@ -50,6 +52,7 @@ export default class MainScene extends Phaser.Scene {
     this.graveyardSystem = new GraveyardSystem(this)
     this.beerSystem = new BeerSystem(this)
     this.enterosgelSystem = new EnterosgelSystem(this)
+    this.mineSystem = new MineSystem(this)
     this.princessSystem = new PrincessSystem(this)
     
     // Создаём энтити
@@ -63,10 +66,13 @@ export default class MainScene extends Phaser.Scene {
     this.graveyardSystem.create()
     this.beerSystem.create()
     this.enterosgelSystem.create()
+    this.mineSystem.create()
     this.princessSystem.create()
     
     // Создаём игрока
     this.player = this.playerEntity.create(200, 600)
+    this.playerEntity.onMineCountChange = this.onMineCountChange
+    this.playerEntity.updateMineCountUI()
     
     // Создаём врагов и NPC
     this.npcManager.create()
@@ -116,6 +122,14 @@ export default class MainScene extends Phaser.Scene {
       left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
     }
+    
+    // Пробел для установки мины
+    this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    this.spaceKey.on('down', () => {
+      if (!this.gameComplete) {
+        this.mineSystem.placeMine(this.player.x, this.player.y)
+      }
+    })
   }
 
   setupCamera() {

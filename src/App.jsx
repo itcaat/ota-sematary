@@ -22,7 +22,8 @@ function App() {
     totalServersToTransfer: 6,
     drunkLevel: 0,
     health: 3,
-    gameTime: 0
+    gameTime: 0,
+    mineCount: 3
   })
 
   useEffect(() => {
@@ -76,6 +77,7 @@ function App() {
     setGameStarted(false)
     setIsAnonymous(false)
     setShowLeaderboard(false)
+    setShowLeaderboardInGame(false)
     setGameState({
       collectedItems: 0,
       totalItems: 16,
@@ -84,7 +86,8 @@ function App() {
       totalServersToTransfer: 6,
       drunkLevel: 0,
       health: 3,
-      gameTime: 0
+      gameTime: 0,
+      mineCount: 3
     })
   }
 
@@ -167,6 +170,7 @@ function App() {
           drunkLevel={gameState.drunkLevel}
           health={gameState.health}
           gameTime={gameState.gameTime}
+          mineCount={gameState.mineCount}
         />
         <Game 
           onItemCollected={(count) => setGameState(prev => ({ ...prev, collectedItems: count }))}
@@ -175,6 +179,7 @@ function App() {
           onDrunkChange={(level) => setGameState(prev => ({ ...prev, drunkLevel: level }))}
           onHealthChange={(hp) => setGameState(prev => ({ ...prev, health: hp }))}
           onTimeUpdate={(time) => setGameState(prev => ({ ...prev, gameTime: time }))}
+          onMineCountChange={(count) => setGameState(prev => ({ ...prev, mineCount: count }))}
           totalItems={gameState.totalItems}
           isPaused={showLeaderboardInGame}
         />

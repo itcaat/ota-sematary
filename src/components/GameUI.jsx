@@ -1,7 +1,7 @@
 import React from 'react'
 import './GameUI.css'
 
-function GameUI({ collectedItems, totalItems, gameComplete, serversTransferred, totalServersToTransfer, drunkLevel, health, gameTime }) {
+function GameUI({ collectedItems, totalItems, gameComplete, serversTransferred, totalServersToTransfer, drunkLevel, health, gameTime, mineCount }) {
   // Защита от отрицательных значений
   const safeHealth = Math.max(0, Math.min(3, health))
   const hearts = '❤️'.repeat(safeHealth) + '🖤'.repeat(3 - safeHealth)
@@ -28,6 +28,10 @@ function GameUI({ collectedItems, totalItems, gameComplete, serversTransferred, 
         <div className="ui-item transfer">
           <span className="ui-icon">📦</span>
           <span className="ui-count">{serversTransferred}/{totalServersToTransfer}</span>
+        </div>
+        <div className="ui-item mines">
+          <span className="ui-icon">💣</span>
+          <span className="ui-count">{mineCount}</span>
         </div>
         {drunkLevel > 0 && (
           <div className="ui-item drunk">

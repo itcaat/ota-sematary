@@ -12,6 +12,10 @@ export class PlayerEntity {
     this.drunkWobble = 0
     this.beerSpeedBonus = 1
     this.unstableSpeed = false
+    
+    // Мины
+    this.mineCount = 3
+    this.onMineCountChange = null
   }
 
   create(x, y) {
@@ -89,6 +93,21 @@ export class PlayerEntity {
           this.drunkTimer = null
         }
       }
+    }
+  }
+
+  useMine() {
+    if (this.mineCount > 0) {
+      this.mineCount--
+      if (this.onMineCountChange) {
+        this.onMineCountChange(this.mineCount)
+      }
+    }
+  }
+
+  updateMineCountUI() {
+    if (this.onMineCountChange) {
+      this.onMineCountChange(this.mineCount)
     }
   }
 

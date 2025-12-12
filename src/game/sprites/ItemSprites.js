@@ -8,6 +8,7 @@ export class ItemSprites {
     this.generateMedkitSprite()
     this.generateBeerSprite()
     this.generateEnterosgelSprite()
+    this.generateMineSprite()
     this.generateGraveMound()
     this.generateGraveyardSprites()
   }
@@ -259,6 +260,61 @@ export class ItemSprites {
     ctx.fillRect(10, 26, 12, 1)
     
     this.scene.textures.addCanvas('enterosgel', canvas)
+  }
+
+  generateMineSprite() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 32
+    canvas.height = 32
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'
+    ctx.beginPath()
+    ctx.ellipse(16, 30, 10, 3, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Корпус мины (темно-серый круг)
+    ctx.fillStyle = '#2a2a2a'
+    ctx.beginPath()
+    ctx.arc(16, 16, 12, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Металлический обод
+    ctx.strokeStyle = '#4a4a4a'
+    ctx.lineWidth = 2
+    ctx.stroke()
+    
+    // Шипы на мине
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8
+      const x1 = 16 + Math.cos(angle) * 12
+      const y1 = 16 + Math.sin(angle) * 12
+      const x2 = 16 + Math.cos(angle) * 17
+      const y2 = 16 + Math.sin(angle) * 17
+      
+      ctx.strokeStyle = '#1a1a1a'
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.moveTo(x1, y1)
+      ctx.lineTo(x2, y2)
+      ctx.stroke()
+    }
+    
+    // Красный индикатор в центре
+    ctx.fillStyle = '#ff0000'
+    ctx.beginPath()
+    ctx.arc(16, 16, 4, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Блик на индикаторе
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'
+    ctx.beginPath()
+    ctx.arc(15, 15, 2, 0, Math.PI * 2)
+    ctx.fill()
+    
+    this.scene.textures.addCanvas('mine', canvas)
   }
 
   generateGraveMound() {

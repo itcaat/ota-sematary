@@ -38,6 +38,10 @@
   border-color: #2196f3;
 }
 
+.ui-item.mines {
+  border-color: #ff5722;
+}
+
 .ui-hearts {
   font-size: 14px;
   letter-spacing: 2px;
