@@ -27,7 +27,36 @@
   border-radius: 8px;
 }
 
-/* Кнопка выхода во время игры */
+/* Кнопки во время игры */
+.leaderboard-game-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 10px 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  border: 2px solid #ff9800;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+  z-index: 150;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.leaderboard-game-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.6);
+  background: linear-gradient(135deg, #fb8c00 0%, #e65100 100%);
+}
+
+.leaderboard-game-button:active {
+  transform: translateY(0);
+}
+
 .exit-game-button {
   position: fixed;
   top: 20px;
@@ -69,6 +98,10 @@
   animation: fadeIn 0.3s ease;
 }
 
+.game-wrapper .overlay-backdrop {
+  z-index: 2900;
+}
+
 .leaderboard-overlay {
   position: fixed;
   top: 50%;
@@ -79,6 +112,10 @@
   max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.leaderboard-overlay.in-game {
+  z-index: 3000;
 }
 
 @keyframes slideIn {
@@ -114,6 +151,10 @@
 .close-overlay:hover {
   background: rgba(244, 67, 54, 1);
   transform: scale(1.1) rotate(90deg);
+}
+
+.in-game .close-overlay {
+  z-index: 3100;
 }
 
 .loading-screen,

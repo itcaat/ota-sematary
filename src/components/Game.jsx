@@ -4,7 +4,7 @@ import BootScene from '../game/scenes/BootScene'
 import MainScene from '../game/scenes/MainScene'
 import './Game.css'
 
-const Game = ({ onItemCollected, onGameComplete, onServerTransferred, onDrunkChange, onHealthChange, onTimeUpdate, totalItems }) => {
+const Game = ({ onItemCollected, onGameComplete, onServerTransferred, onDrunkChange, onHealthChange, onTimeUpdate, totalItems, isPaused }) => {
   const gameRef = useRef(null)
   const phaserGameRef = useRef(null)
 
@@ -48,6 +48,9 @@ const Game = ({ onItemCollected, onGameComplete, onServerTransferred, onDrunkCha
           mainScene.onTimeUpdate = onTimeUpdate
         })
       }
+      
+      // Сохраняем ссылку на главную сцену для управления паузой
+      phaserGameRef.mainScene = mainScene
     })
 
     // Запускаем MainScene с данными
@@ -70,6 +73,26 @@ const Game = ({ onItemCollected, onGameComplete, onServerTransferred, onDrunkCha
       }
     }
   }, [])
+
+  // Обработка паузы
+  useEffect(() => {
+    if (phaserGameRef.current) {
+      const mainScene = phaserGameRef.current.scene.getScene('MainScene')
+      if (mainScene) {
+        if (isPaused) {
+          // Ставим на паузу, если сцена активна
+          if (mainScene.scene.isActive()) {
+            mainScene.scene.pause()
+          }
+        } else {
+          // Снимаем с паузы, если сцена на паузе
+          if (mainScene.scene.isPaused()) {
+            mainScene.scene.resume()
+          }
+        }
+      }
+    }
+  }, [isPaused])
 
   return <div ref={gameRef} className="game-container" />
 }

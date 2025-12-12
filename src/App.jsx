@@ -13,6 +13,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false)
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [showLeaderboardInGame, setShowLeaderboardInGame] = useState(false)
   const [gameState, setGameState] = useState({
     collectedItems: 0,
     totalItems: 16,
@@ -175,12 +176,37 @@ function App() {
           onHealthChange={(hp) => setGameState(prev => ({ ...prev, health: hp }))}
           onTimeUpdate={(time) => setGameState(prev => ({ ...prev, gameTime: time }))}
           totalItems={gameState.totalItems}
+          isPaused={showLeaderboardInGame}
         />
+        
+        {/* Кнопка рейтинга во время игры */}
+        {!isAnonymous && (
+          <button 
+            className="leaderboard-game-button" 
+            onClick={() => setShowLeaderboardInGame(true)} 
+            title="Показать рейтинг"
+          >
+            🏆 Рейтинг
+          </button>
+        )}
         
         {/* Кнопка выхода во время игры */}
         <button className="exit-game-button" onClick={handleSignOut} title="Выйти из игры">
           🚪 Выйти
         </button>
+        
+        {/* Рейтинг во время игры */}
+        {showLeaderboardInGame && !isAnonymous && (
+          <>
+            <div className="overlay-backdrop" onClick={() => setShowLeaderboardInGame(false)} />
+            <div className="leaderboard-overlay in-game">
+              <button className="close-overlay" onClick={() => setShowLeaderboardInGame(false)}>
+                ✕
+              </button>
+              <Leaderboard currentUserEmail={session?.user?.email} />
+            </div>
+          </>
+        )}
       </div>
       <footer className="footer">
         <span>🎮 OTA-SEMATARY</span>
