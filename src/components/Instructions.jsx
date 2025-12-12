@@ -1,7 +1,7 @@
 import React from 'react'
 import './Instructions.css'
 
-function Instructions({ onStartGame, onShowLeaderboard, onSignOut, userEmail, isAnonymous, showLeaderboard }) {
+function Instructions({ onStartGame, onShowLeaderboard, onSignOut, userEmail, userNickname, isAnonymous, showLeaderboard }) {
   return (
     <div className="instructions">
       <div className="instructions-content">
@@ -11,8 +11,8 @@ function Instructions({ onStartGame, onShowLeaderboard, onSignOut, userEmail, is
           <span className="icon">💀</span>
         </h2>
         
-        {userEmail && !isAnonymous && (
-          <p className="user-info">Вы вошли как: <strong>{userEmail}</strong></p>
+        {userNickname && !isAnonymous && (
+          <p className="user-info">🎮 Игрок: <strong className="nickname-display">{userNickname}</strong></p>
         )}
         
         {isAnonymous && (

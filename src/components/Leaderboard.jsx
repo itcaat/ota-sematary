@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import './Leaderboard.css'
 
-function Leaderboard({ currentUserEmail }) {
+function Leaderboard({ currentUserNickname }) {
   const [scores, setScores] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -34,12 +34,6 @@ function Leaderboard({ currentUserEmail }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  const maskEmail = (email) => {
-    const [name, domain] = email.split('@')
-    if (name.length <= 2) return email
-    return `${name.substring(0, 2)}***@${domain}`
-  }
-
   if (loading) {
     return (
       <div className="leaderboard-container">
@@ -63,7 +57,7 @@ function Leaderboard({ currentUserEmail }) {
             {scores.map((score, index) => (
               <div 
                 key={score.id} 
-                className={`score-item ${score.email === currentUserEmail ? 'current-user' : ''} ${index < 3 ? `medal-${index + 1}` : ''}`}
+                className={`score-item ${score.nickname === currentUserNickname ? 'current-user' : ''} ${index < 3 ? `medal-${index + 1}` : ''}`}
               >
                 <span className="rank">
                   {index === 0 && '🥇'}
@@ -71,7 +65,7 @@ function Leaderboard({ currentUserEmail }) {
                   {index === 2 && '🥉'}
                   {index > 2 && `#${index + 1}`}
                 </span>
-                <span className="email">{maskEmail(score.email)}</span>
+                <span className="nickname">{score.nickname || 'Аноним'}</span>
                 <span className="time">⏱️ {formatTime(score.time)}</span>
               </div>
             ))}

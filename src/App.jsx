@@ -4,6 +4,7 @@ import Instructions from './components/Instructions'
 import GameUI from './components/GameUI'
 import Auth from './components/Auth'
 import Leaderboard from './components/Leaderboard'
+import SetNickname from './components/SetNickname'
 import { supabase } from './lib/supabaseClient'
 import './App.css'
 
@@ -14,6 +15,8 @@ function App() {
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showLeaderboardInGame, setShowLeaderboardInGame] = useState(false)
+  const [userNickname, setUserNickname] = useState(null)
+  const [checkingNickname, setCheckingNickname] = useState(false)
   const [gameState, setGameState] = useState({
     collectedItems: 0,
     totalItems: 16,
@@ -30,7 +33,11 @@ function App() {
     // Проверяем текущую сессию
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      setLoading(false)
+      if (session?.user?.id) {
+        checkUserNickname(session.user.id)
+      } else {
+        setLoading(false)
+      }
     })
 
     // Подписываемся на изменения аутентификации
@@ -38,10 +45,42 @@ function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      if (session?.user?.id) {
+        checkUserNickname(session.user.id)
+      } else {
+        setUserNickname(null)
+      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Проверяем есть ли у пользователя никнейм
+  const checkUserNickname = async (userId) => {
+    setCheckingNickname(true)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('user_id', userId)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking nickname:', error)
+      }
+
+      if (data?.nickname) {
+        setUserNickname(data.nickname)
+      } else {
+        setUserNickname(null)
+      }
+    } catch (err) {
+      console.error('Error:', err)
+    } finally {
+      setCheckingNickname(false)
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     // Сохраняем результат в Supabase при завершении игры (только для авторизованных)
@@ -51,14 +90,15 @@ function App() {
   }, [gameState.gameComplete])
 
   const saveScore = async () => {
-    if (!session?.user?.email) return
+    if (!session?.user?.id || !userNickname) return
 
     try {
       const { error } = await supabase
         .from('leaderboard')
         .insert([
           {
-            email: session.user.email,
+            user_id: session.user.id,
+            nickname: userNickname,
             time: gameState.gameTime,
             created_at: new Date().toISOString()
           }
@@ -78,6 +118,7 @@ function App() {
     setIsAnonymous(false)
     setShowLeaderboard(false)
     setShowLeaderboardInGame(false)
+    setUserNickname(null)
     setGameState({
       collectedItems: 0,
       totalItems: 16,
@@ -96,7 +137,11 @@ function App() {
     setGameStarted(true)
   }
 
-  if (loading) {
+  const handleNicknameSet = (nickname) => {
+    setUserNickname(nickname)
+  }
+
+  if (loading || checkingNickname) {
     return (
       <div className="app">
         <div className="loading-screen">
@@ -115,7 +160,25 @@ function App() {
           onPlayAnonymous={handlePlayAnonymous}
         />
         <footer className="footer">
-          <span>🎮 SALO Platformer</span>
+          <span>🎮 OTA-SEMATARY</span>
+          <span>•</span>
+          <span>Разработано с ❤️ и Phaser 3</span>
+        </footer>
+      </div>
+    )
+  }
+
+  // Если залогинен но нет никнейма - показываем экран установки никнейма
+  if (session && !isAnonymous && !userNickname) {
+    return (
+      <div className="app">
+        <SetNickname 
+          userId={session.user.id}
+          userEmail={session.user.email}
+          onNicknameSet={handleNicknameSet}
+        />
+        <footer className="footer">
+          <span>🎮 OTA-SEMATARY</span>
           <span>•</span>
           <span>Разработано с ❤️ и Phaser 3</span>
         </footer>
@@ -132,6 +195,7 @@ function App() {
           onShowLeaderboard={() => setShowLeaderboard(!showLeaderboard)}
           onSignOut={handleSignOut}
           userEmail={session?.user?.email}
+          userNickname={userNickname}
           isAnonymous={isAnonymous}
           showLeaderboard={showLeaderboard}
         />
@@ -143,7 +207,7 @@ function App() {
               <button className="close-overlay" onClick={() => setShowLeaderboard(false)}>
                 ✕
               </button>
-              <Leaderboard currentUserEmail={session.user.email} />
+              <Leaderboard currentUserNickname={userNickname} />
             </div>
           </>
         )}
@@ -208,7 +272,7 @@ function App() {
               <button className="close-overlay" onClick={() => setShowLeaderboardInGame(false)}>
                 ✕
               </button>
-              <Leaderboard currentUserEmail={session?.user?.email} />
+              <Leaderboard currentUserNickname={userNickname} />
             </div>
           </>
         )}
