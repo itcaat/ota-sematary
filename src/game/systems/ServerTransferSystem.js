@@ -11,6 +11,7 @@ export class ServerTransferSystem {
     this.deliveryZone = null
     this.deliveryZoneText = null
     this.carryingText = null
+    this.allTransferredMessageShown = false
   }
 
   create(buildings) {
@@ -192,10 +193,23 @@ export class ServerTransferSystem {
     if (this.serversTransferred >= this.totalServersToTransfer) {
       this.onAllServersTransferred()
     }
+    
+    // Проверяем, выполнены ли все задания (уничтожение + перенос)
+    this.scene.checkAllTasksComplete()
   }
 
   onAllServersTransferred() {
-    const completeText = this.scene.add.text(400, 250, '✅ ВСЕ СЕРВЕРЫ ПЕРЕНЕСЕНЫ!\nБеги в офис скорее!', {
+    // Проверяем один раз
+    if (this.allTransferredMessageShown) return
+    this.allTransferredMessageShown = true
+    
+    // Проверяем, уничтожены ли все серверы на улице
+    const allDestroyed = this.scene.graveyardSystem.collectedItems >= this.scene.graveyardSystem.totalItems
+    const message = allDestroyed 
+      ? '✅ ВСЕ СЕРВЕРЫ ПЕРЕНЕСЕНЫ!\nОфис открыт! Беги скорее!' 
+      : '✅ ВСЕ СЕРВЕРЫ ПЕРЕНЕСЕНЫ!\nТеперь уничтожь серверы на улице!'
+    
+    const completeText = this.scene.add.text(400, 250, message, {
       fontFamily: 'monospace',
       fontSize: '18px',
       fill: '#00ff00',

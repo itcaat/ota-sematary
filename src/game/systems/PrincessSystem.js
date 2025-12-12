@@ -49,9 +49,62 @@ export class PrincessSystem {
   }
 
   reach(player, princess) {
-    if (this.scene.graveyardSystem.collectedItems >= this.scene.graveyardSystem.totalItems && !this.scene.gameComplete) {
+    // Проверяем ОБА условия: и уничтожение серверов, и их перенос
+    const allServersDestroyed = this.scene.graveyardSystem.collectedItems >= this.scene.graveyardSystem.totalItems
+    const allServersTransferred = this.scene.serverTransferSystem.serversTransferred >= this.scene.serverTransferSystem.totalServersToTransfer
+    
+    if (allServersDestroyed && allServersTransferred && !this.scene.gameComplete) {
       this.completeGame()
+    } else if (!this.scene.gameComplete) {
+      // Показываем что ещё нужно сделать
+      this.showIncompleteMessage(allServersDestroyed, allServersTransferred)
     }
+  }
+
+  showIncompleteMessage(serversDestroyed, serversTransferred) {
+    // Показываем сообщение только раз в 3 секунды, чтобы не спамить
+    if (this.lastMessageTime && Date.now() - this.lastMessageTime < 3000) {
+      return
+    }
+    this.lastMessageTime = Date.now()
+    
+    let message = '⚠️ Ещё не всё готово!\n\n'
+    
+    if (!serversDestroyed) {
+      const remaining = this.scene.graveyardSystem.totalItems - this.scene.graveyardSystem.collectedItems
+      message += `❌ Уничтожь серверы на улице (осталось: ${remaining})\n`
+    } else {
+      message += `✅ Серверы на улице уничтожены\n`
+    }
+    
+    if (!serversTransferred) {
+      const remaining = this.scene.serverTransferSystem.totalServersToTransfer - this.scene.serverTransferSystem.serversTransferred
+      message += `❌ Перенеси серверы из Selectel в Yandex (осталось: ${remaining})\n`
+    } else {
+      message += `✅ Серверы перенесены\n`
+    }
+    
+    const warningText = this.scene.add.text(
+      this.scene.cameras.main.scrollX + this.scene.cameras.main.width / 2,
+      this.scene.cameras.main.scrollY + 100,
+      message,
+      {
+        fontFamily: 'monospace',
+        fontSize: '20px',
+        fill: '#ff9800',
+        stroke: '#000000',
+        strokeThickness: 4,
+        align: 'center'
+      }
+    ).setOrigin(0.5).setDepth(10000)
+    
+    this.scene.tweens.add({
+      targets: warningText,
+      alpha: 0,
+      y: warningText.y - 30,
+      duration: 2500,
+      onComplete: () => warningText.destroy()
+    })
   }
 
   completeGame() {

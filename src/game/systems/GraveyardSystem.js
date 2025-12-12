@@ -5,6 +5,7 @@ export class GraveyardSystem {
     this.graves = null
     this.collectedItems = 0
     this.totalItems = 16
+    this.allDestroyedMessageShown = false
     
     this.epitaphs = [
       "Покойся с миром 🙏",
@@ -108,9 +109,50 @@ export class GraveyardSystem {
     this.collectedItems++
     this.scene.onItemCollected(this.collectedItems)
     
-    if (this.collectedItems >= this.totalItems && !this.scene.buildingSystem.officeUnlocked) {
-      this.scene.buildingSystem.unlockOffice()
+    // Если все серверы уничтожены
+    if (this.collectedItems >= this.totalItems) {
+      this.onAllServersDestroyed()
     }
+    
+    // Проверяем, выполнены ли все задания (уничтожение + перенос)
+    this.scene.checkAllTasksComplete()
+  }
+
+  onAllServersDestroyed() {
+    // Проверяем один раз
+    if (this.allDestroyedMessageShown) return
+    this.allDestroyedMessageShown = true
+    
+    // Проверяем, перенесены ли все серверы
+    const allTransferred = this.scene.serverTransferSystem.serversTransferred >= this.scene.serverTransferSystem.totalServersToTransfer
+    const message = allTransferred 
+      ? '✅ ВСЕ СЕРВЕРЫ УНИЧТОЖЕНЫ!\nОфис открыт! Беги скорее!' 
+      : '✅ ВСЕ СЕРВЕРЫ УНИЧТОЖЕНЫ!\nТеперь перенеси серверы из Selectel в Yandex!'
+    
+    const completeText = this.scene.add.text(400, 250, message, {
+      fontFamily: 'monospace',
+      fontSize: '18px',
+      fill: '#00ff00',
+      stroke: '#000000',
+      strokeThickness: 4,
+      align: 'center'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
+    
+    this.scene.tweens.add({
+      targets: completeText,
+      scale: 1.1,
+      duration: 500,
+      yoyo: true,
+      repeat: 2,
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: completeText,
+          alpha: 0,
+          duration: 1000,
+          onComplete: () => completeText.destroy()
+        })
+      }
+    })
   }
 
   createDeathEffect(x, y) {

@@ -206,6 +206,16 @@ export default class MainScene extends Phaser.Scene {
     })
   }
 
+  checkAllTasksComplete() {
+    // Проверяем выполнены ли все задания
+    const allServersDestroyed = this.graveyardSystem.collectedItems >= this.graveyardSystem.totalItems
+    const allServersTransferred = this.serverTransferSystem.serversTransferred >= this.serverTransferSystem.totalServersToTransfer
+    
+    if (allServersDestroyed && allServersTransferred && !this.buildingSystem.officeUnlocked) {
+      this.buildingSystem.unlockOffice()
+    }
+  }
+
   update() {
     if (this.gameComplete) return
     
