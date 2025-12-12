@@ -2,7 +2,9 @@ import React from 'react'
 import './GameUI.css'
 
 function GameUI({ collectedItems, totalItems, gameComplete, serversTransferred, totalServersToTransfer, drunkLevel, health }) {
-  const hearts = '❤️'.repeat(health) + '🖤'.repeat(3 - health)
+  // Защита от отрицательных значений
+  const safeHealth = Math.max(0, Math.min(3, health))
+  const hearts = '❤️'.repeat(safeHealth) + '🖤'.repeat(3 - safeHealth)
   
   return (
     <div className="game-ui">

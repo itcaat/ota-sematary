@@ -32,9 +32,16 @@ export class PlayerEntity {
     if (this.isInvulnerable || this.scene.gameComplete) return false
     
     this.health -= amount
+    const isDead = this.health <= 0
+    
+    // Не даём здоровью уйти в минус
+    if (isDead) {
+      this.health = 0
+    }
+    
     this.updateHealthUI()
     
-    return this.health <= 0
+    return isDead
   }
 
   setInvulnerable(duration) {

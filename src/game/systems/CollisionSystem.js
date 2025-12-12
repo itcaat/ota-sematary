@@ -132,6 +132,12 @@ export class CollisionSystem {
     
     const isDead = this.scene.playerEntity.takeDamage(1)
     
+    // Проверяем смерть ДО анимаций
+    if (isDead) {
+      this.scene.gameOver()
+      return
+    }
+    
     const angle = Phaser.Math.Angle.Between(zombie.x, zombie.y, player.x, player.y)
     player.setVelocity(Math.cos(angle) * 300, Math.sin(angle) * 300)
     
@@ -150,10 +156,6 @@ export class CollisionSystem {
     
     this.scene.sound.playHurt()
     this.scene.cameras.main.shake(200, 0.01)
-    
-    if (isDead) {
-      this.scene.gameOver()
-    }
   }
 
   crutchHitPlayer(player, crutch) {
@@ -162,6 +164,12 @@ export class CollisionSystem {
     crutch.destroy()
     
     const isDead = this.scene.playerEntity.takeDamage(1)
+    
+    // Проверяем смерть ДО анимаций
+    if (isDead) {
+      this.scene.gameOver()
+      return
+    }
     
     this.scene.cameras.main.shake(150, 0.01)
     player.setTint(0xffaa00)
@@ -187,16 +195,18 @@ export class CollisionSystem {
     })
     
     this.scene.playerEntity.setInvulnerable(800)
-    
-    if (isDead) {
-      this.scene.gameOver()
-    }
   }
 
   zubkovHitPlayer(player, zubkov) {
     if (this.scene.playerEntity.isInvulnerable || this.scene.gameComplete) return
     
     const isDead = this.scene.playerEntity.takeDamage(2)
+    
+    // Проверяем смерть ДО анимаций
+    if (isDead) {
+      this.scene.gameOver()
+      return
+    }
     
     const angle = Phaser.Math.Angle.Between(zubkov.x, zubkov.y, player.x, player.y)
     player.setVelocity(Math.cos(angle) * 400, Math.sin(angle) * 400)
@@ -217,6 +227,7 @@ export class CollisionSystem {
     this.scene.cameras.main.shake(300, 0.02)
     this.scene.sound.playZubkov()
     
+    // Текст урона (только если игрок жив)
     const shout = this.scene.add.text(zubkov.x, zubkov.y - 50, '💀 УВОЛЕН!', {
       fontSize: '16px',
       fontFamily: 'monospace',
@@ -232,18 +243,20 @@ export class CollisionSystem {
       duration: 1500,
       onComplete: () => shout.destroy()
     })
-    
-    if (isDead) {
-      this.scene.gameOver()
-    }
   }
 
   zombieGirlHitPlayer(player, zombieGirl) {
     if (this.scene.playerEntity.isInvulnerable || this.scene.gameComplete || this.scene.buildingSystem.isHiding) return
-    if (!zombieGirl.girlData) return
+    if (!zombieGirl.girlData && !zombieGirl.npcData) return
     
-    const damage = zombieGirl.girlData.damage
+    const damage = zombieGirl.girlData?.damage || zombieGirl.npcData?.damage || 1
     const isDead = this.scene.playerEntity.takeDamage(damage)
+    
+    // Проверяем смерть ДО анимаций
+    if (isDead) {
+      this.scene.gameOver()
+      return
+    }
     
     this.scene.cameras.main.shake(100, 0.005)
     player.setTint(0xff69b4)
@@ -254,10 +267,6 @@ export class CollisionSystem {
     
     this.scene.sound.playAlert()
     this.scene.playerEntity.setInvulnerable(1000)
-    
-    if (isDead) {
-      this.scene.gameOver()
-    }
   }
 }
 
