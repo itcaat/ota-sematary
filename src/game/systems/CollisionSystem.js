@@ -13,6 +13,7 @@ export class CollisionSystem {
     const zombieGirl = this.scene.npcManager.getZombieGirlSprite()
     const { servers } = this.scene.graveyardSystem
     const { beers } = this.scene.beerSystem
+    const { enterosgels } = this.scene.enterosgelSystem
     const { transferServers } = this.scene.serverTransferSystem
     const { princess } = this.scene.princessSystem
     
@@ -69,6 +70,8 @@ export class CollisionSystem {
       (p, s) => this.scene.graveyardSystem.killServer(p, s), null, this.scene)
     this.scene.physics.add.overlap(player, beers, 
       (p, b) => this.scene.beerSystem.drinkBeer(p, b), null, this.scene)
+    this.scene.physics.add.overlap(player, enterosgels, 
+      (p, e) => this.scene.enterosgelSystem.takeEnterosgel(p, e), null, this.scene)
     this.scene.physics.add.overlap(player, princess, 
       (p, pr) => this.scene.princessSystem.reach(p, pr), null, this.scene)
   }

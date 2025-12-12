@@ -7,6 +7,7 @@ import { BuildingSystem } from '../systems/BuildingSystem'
 import { ServerTransferSystem } from '../systems/ServerTransferSystem'
 import { GraveyardSystem } from '../systems/GraveyardSystem'
 import { BeerSystem } from '../systems/BeerSystem'
+import { EnterosgelSystem } from '../systems/EnterosgelSystem'
 import { PrincessSystem } from '../systems/PrincessSystem'
 import { CollisionSystem } from '../systems/CollisionSystem'
 
@@ -46,6 +47,7 @@ export default class MainScene extends Phaser.Scene {
     this.serverTransferSystem = new ServerTransferSystem(this)
     this.graveyardSystem = new GraveyardSystem(this)
     this.beerSystem = new BeerSystem(this)
+    this.enterosgelSystem = new EnterosgelSystem(this)
     this.princessSystem = new PrincessSystem(this)
     
     // Создаём энтити
@@ -58,6 +60,7 @@ export default class MainScene extends Phaser.Scene {
     this.serverTransferSystem.create(this.buildingSystem.buildings)
     this.graveyardSystem.create()
     this.beerSystem.create()
+    this.enterosgelSystem.create()
     this.princessSystem.create()
     
     // Создаём игрока

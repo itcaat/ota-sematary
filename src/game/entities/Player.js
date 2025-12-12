@@ -76,6 +76,22 @@ export class PlayerEntity {
     this.applyDrunkEffects()
   }
 
+  takeEnterosgel() {
+    if (this.drunkLevel > 0) {
+      this.drunkLevel--
+      this.scene.onDrunkChange(this.drunkLevel)
+      this.updateBeerSpeedBonus()
+      
+      if (this.drunkLevel === 0) {
+        this.removeDrunkEffects()
+        if (this.drunkTimer) {
+          this.drunkTimer.remove()
+          this.drunkTimer = null
+        }
+      }
+    }
+  }
+
   updateBeerSpeedBonus() {
     if (this.drunkLevel <= 3) {
       this.beerSpeedBonus = 1 + (this.drunkLevel * 0.15)

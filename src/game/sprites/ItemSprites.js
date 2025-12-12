@@ -7,6 +7,7 @@ export class ItemSprites {
     this.generateServerSprite()
     this.generateMedkitSprite()
     this.generateBeerSprite()
+    this.generateEnterosgelSprite()
     this.generateGraveMound()
     this.generateGraveyardSprites()
   }
@@ -200,6 +201,64 @@ export class ItemSprites {
     ctx.strokeRect(4, 8, 18, 20)
     
     this.scene.textures.addCanvas('beer', canvas)
+  }
+
+  generateEnterosgelSprite() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 32
+    canvas.height = 32
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'
+    ctx.beginPath()
+    ctx.ellipse(16, 30, 10, 3, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Корпус тюбика (белый)
+    ctx.fillStyle = '#f5f5f5'
+    ctx.beginPath()
+    ctx.roundRect(8, 8, 16, 20, 2)
+    ctx.fill()
+    
+    // Крышка (синяя)
+    ctx.fillStyle = '#2196f3'
+    ctx.beginPath()
+    ctx.roundRect(11, 4, 10, 6, 1)
+    ctx.fill()
+    
+    // Полоска на крышке
+    ctx.fillStyle = '#1976d2'
+    ctx.fillRect(11, 7, 10, 2)
+    
+    // Синяя полоса на тюбике
+    ctx.fillStyle = '#2196f3'
+    ctx.fillRect(8, 14, 16, 8)
+    
+    // Надпись "E"
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 12px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText('E', 16, 21)
+    
+    // Обводка тюбика
+    ctx.strokeStyle = '#bdbdbd'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.roundRect(8, 8, 16, 20, 2)
+    ctx.stroke()
+    
+    // Блик
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'
+    ctx.fillRect(10, 10, 3, 10)
+    
+    // Детали внизу тюбика (сгиб)
+    ctx.fillStyle = '#e0e0e0'
+    ctx.fillRect(8, 24, 16, 2)
+    ctx.fillRect(10, 26, 12, 1)
+    
+    this.scene.textures.addCanvas('enterosgel', canvas)
   }
 
   generateGraveMound() {
