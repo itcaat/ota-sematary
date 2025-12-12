@@ -68,18 +68,18 @@ export class BuildingSystem {
       zone.body.setAllowGravity(false)
       zone.body.setImmovable(true)
       
-      const hint = this.scene.add.text(config.x, config.y - hh - 25, `🏢 ${config.name}\n↓ ВХОД`, {
+      // Постоянная надпись над зданием
+      const label = this.scene.add.text(config.x, config.y - hh - 20, config.name, {
         fontFamily: 'monospace',
-        fontSize: '12px',
-        fill: '#00ff00',
+        fontSize: '16px',
+        fill: '#ffffff',
         stroke: '#000000',
-        strokeThickness: 3,
-        align: 'center',
-        shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 0, fill: true }
-      }).setOrigin(0.5).setDepth(100).setAlpha(0)
+        strokeThickness: 4,
+        align: 'center'
+      }).setOrigin(0.5).setDepth(100)
       
       building.zone = zone
-      building.hint = hint
+      building.label = label
       building.buildingName = config.name
       building.buildingType = config.type
       building.buildingWidth = config.width
@@ -212,20 +212,7 @@ export class BuildingSystem {
   }
 
   update() {
-    this.buildings.forEach(building => {
-      const doorY = building.y + building.buildingHeight/2
-      const dist = Phaser.Math.Distance.Between(
-        this.scene.player.x, this.scene.player.y,
-        building.x, doorY
-      )
-      
-      if (dist < 100 && !this.isHiding) {
-        building.hint.setAlpha(1)
-        building.hint.setScale(1 + Math.sin(this.scene.time.now / 200) * 0.05)
-      } else {
-        building.hint.setAlpha(0)
-      }
-    })
+    // Обновление зданий (если потребуется в будущем)
   }
 }
 

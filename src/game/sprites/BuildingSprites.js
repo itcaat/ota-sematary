@@ -98,16 +98,6 @@ export class BuildingSprites {
     ctx.fillStyle = '#5a5a6a'
     ctx.fillRect(82, 180 - wallThickness, 36, 3)
     
-    // Надпись SELECTEL на стене
-    ctx.fillStyle = '#00ff66'
-    ctx.font = 'bold 14px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText('SELECTEL', 100, 175)
-    
-    // Зелёное свечение у надписи
-    ctx.fillStyle = 'rgba(0,255,100,0.2)'
-    ctx.fillRect(50, 160, 100, 15)
-    
     this.scene.textures.addCanvas('building_selectel', canvas)
   }
 
@@ -190,18 +180,6 @@ export class BuildingSprites {
     ctx.fillRect(80, 180 - wallThickness, 40, wallThickness)
     ctx.fillStyle = '#aa0000'
     ctx.fillRect(82, 180 - 3, 36, 3)
-    
-    // Логотип Яндекса
-    ctx.fillStyle = '#ff0000'
-    ctx.fillRect(90, 160, 20, 15)
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 12px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText('Я', 100, 172)
-    
-    ctx.fillStyle = '#000000'
-    ctx.font = 'bold 12px monospace'
-    ctx.fillText('YANDEX', 100, 158)
     
     this.scene.textures.addCanvas('building_yandex', canvas)
   }
@@ -310,17 +288,6 @@ export class BuildingSprites {
     ctx.fillRect(90, 200 - wallThickness, 40, wallThickness)
     ctx.fillStyle = '#3a8a5a'
     ctx.fillRect(92, 200 - wallThickness, 36, 5)
-    
-    // Вывеска OTA
-    ctx.fillStyle = '#1a4a8a'
-    ctx.fillRect(75, 180, 70, 14)
-    ctx.strokeStyle = '#3a8afa'
-    ctx.lineWidth = 2
-    ctx.strokeRect(75, 180, 70, 14)
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 11px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText('SALO OFFICE', 110, 191)
     
     this.scene.textures.addCanvas('building_office', canvas)
   }
@@ -447,17 +414,6 @@ export class BuildingSprites {
     ctx.fillRect(90, 200 - wallThickness, 40, wallThickness)
     ctx.fillStyle = '#8a3a5a'
     ctx.fillRect(92, 200 - wallThickness, 36, 5)
-    
-    // Вывеска Пхукетск
-    ctx.fillStyle = '#8a1a4a'
-    ctx.fillRect(65, 180, 90, 14)
-    ctx.strokeStyle = '#fa3a8a'
-    ctx.lineWidth = 2
-    ctx.strokeRect(65, 180, 90, 14)
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 11px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText('Пхукетск', 110, 191)
     
     this.scene.textures.addCanvas('building_phuketsk', canvas)
   }
