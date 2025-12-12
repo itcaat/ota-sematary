@@ -7,14 +7,11 @@ export class EnterosgelSystem {
   create() {
     this.enterosgels = this.scene.physics.add.group()
     
-    // Раскидываем энтеросгели по карте (в разных местах)
+    // Раскидываем энтеросгели по карте (всего 3 штуки)
     const positions = [
-      { x: 300, y: 500 },
-      { x: 700, y: 350 },
-      { x: 1100, y: 450 },
-      { x: 500, y: 800 },
+      { x: 500, y: 400 },
       { x: 900, y: 700 },
-      { x: 1300, y: 550 },
+      { x: 1200, y: 450 },
     ]
     
     positions.forEach(pos => {

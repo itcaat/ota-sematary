@@ -115,17 +115,10 @@ export class BaseNPC {
     }).setOrigin(0.5).setDepth(200)
     
     this.sprite.activePhrase = phraseEffect
-    this.sprite.phraseStartY = this.sprite.y - 50
-    this.sprite.phraseStartTime = this.scene.time.now
     
-    // Анимация фразы
-    this.scene.tweens.add({
-      targets: phraseEffect,
-      alpha: 0,
-      scale: 1.5,
-      duration: 5000,
-      ease: 'Power2',
-      onComplete: () => {
+    // Удаление фразы через 5 секунд (без анимации прозрачности)
+    this.scene.time.delayedCall(5000, () => {
+      if (phraseEffect && phraseEffect.active) {
         phraseEffect.destroy()
         this.sprite.activePhrase = null
       }
@@ -153,12 +146,10 @@ export class BaseNPC {
       this.nameText.y = this.sprite.y - (this.config.nameOffset || 30)
     }
     
-    // Обновляем позицию фразы (следует за NPC с вертикальным движением)
-    if (this.sprite.activePhrase && this.sprite.phraseStartTime) {
-      const elapsed = this.scene.time.now - this.sprite.phraseStartTime
-      const offsetY = (elapsed / 5000) * 30
+    // Обновляем позицию фразы (следует за NPC без движения вверх)
+    if (this.sprite.activePhrase) {
       this.sprite.activePhrase.x = this.sprite.x
-      this.sprite.activePhrase.y = this.sprite.phraseStartY - offsetY
+      this.sprite.activePhrase.y = this.sprite.y - 50
     }
   }
 
