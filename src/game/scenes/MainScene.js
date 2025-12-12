@@ -146,6 +146,7 @@ export default class MainScene extends Phaser.Scene {
       { type: 'selectel', x: 200, y: 190, name: 'Датацентр Selectel', width: 200, height: 180 },
       { type: 'yandex', x: 1400, y: 190, name: 'Датацентр Yandex', width: 200, height: 180 },
       { type: 'office', x: 800, y: 1000, name: 'SALO OFFICE', width: 220, height: 200 },
+      { type: 'phuketsk', x: 1200, y: 800, name: 'Пхукетск', width: 220, height: 200 },
     ]
     
     buildingConfigs.forEach(config => {
@@ -384,15 +385,6 @@ export default class MainScene extends Phaser.Scene {
       }
     ).setOrigin(0.5).setDepth(6)
     
-    // UI счётчик переноса
-    this.transferText = this.add.text(400, 80, `📦 Перенос: 0/${this.totalServersToTransfer}`, {
-      fontFamily: 'monospace',
-      fontSize: '14px',
-      fill: '#ffcc00',
-      stroke: '#000000',
-      strokeThickness: 3
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
-    
     // Индикатор что несём сервер
     this.carryingText = this.add.text(400, 100, '', {
       fontFamily: 'monospace',
@@ -454,7 +446,6 @@ export default class MainScene extends Phaser.Scene {
     }
     
     // Обновляем UI
-    this.transferText.setText(`📦 Перенос: ${this.serversTransferred}/${this.totalServersToTransfer}`)
     this.carryingText.setText('')
     
     // Восстанавливаем скорость
@@ -536,10 +527,6 @@ export default class MainScene extends Phaser.Scene {
     // Скрываем зону доставки
     this.deliveryZone.setVisible(false)
     this.deliveryZoneText.setVisible(false)
-    
-    // Обновляем текст
-    this.transferText.setText('📦 Миграция: ✅ ЗАВЕРШЕНА')
-    this.transferText.setFill('#00ff00')
   }
   
   collectMedkit(player, medkit) {
@@ -912,7 +899,7 @@ export default class MainScene extends Phaser.Scene {
     }
     
     // Имя над головой
-    this.zombieGirl.nameText = this.add.text(600, 400 - 30, 'narine', {
+    this.zombieGirl.nameText = this.add.text(600, 400 - 30, 'Нарине', {
       fontFamily: 'monospace',
       fontSize: '8px',
       fill: '#ff69b4',
@@ -938,7 +925,6 @@ export default class MainScene extends Phaser.Scene {
       'Кто опять свет не выключил?!',
       'Документы где?!',
       'Заявку напиши!',
-      'Это не моя зона ответственности!',
       'По регламенту не положено!',
       'Сначала согласуй!',
       'А пропуск где?',
@@ -946,7 +932,6 @@ export default class MainScene extends Phaser.Scene {
       'Принтер опять сломали!',
       'Кондиционер не трогать!',
       'Уборщица уже ушла!',
-      'Заявка в работе... с прошлого года'
     ]
     
     // Таймер фраз
@@ -1256,19 +1241,28 @@ export default class MainScene extends Phaser.Scene {
     // Звук Game Over
     this.sound.playGameOver()
     
-    const gameOverText = this.add.text(400, 250, '💼 ТЫ ВЫГОРЕЛ 💼', {
+    // Останавливаем камеру
+    this.cameras.main.stopFollow()
+    
+    // Получаем центр камеры
+    const centerX = this.cameras.main.scrollX + this.cameras.main.width / 2
+    const centerY = this.cameras.main.scrollY + this.cameras.main.height / 2
+    
+    const gameOverText = this.add.text(centerX, centerY - 50, '💼 ТЫ ВЫГОРЕЛ 💼', {
       fontFamily: 'monospace',
       fontSize: '48px',
       fill: '#ff0000',
       stroke: '#000000',
       strokeThickness: 6
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
+    }).setOrigin(0.5).setDepth(10000)
     
-    const restartText = this.add.text(400, 320, 'Нажмите R чтобы попробовать снова', {
+    const restartText = this.add.text(centerX, centerY + 20, 'Нажмите R чтобы попробовать снова', {
       fontFamily: 'monospace',
       fontSize: '20px',
-      fill: '#ffffff'
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
+      fill: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5).setDepth(10000)
     
     this.input.keyboard.once('keydown-R', () => {
       this.scene.restart()
@@ -1402,6 +1396,28 @@ export default class MainScene extends Phaser.Scene {
       "Бог DevOps! ⚡\n(богохульство)",
     ]
     
+    // Фразы для Козлова
+    this.kozlovPhrases = [
+      "Когда уже в yandex\nпереедем?",
+      "Чет я уже заебался",
+      "Да сколько можно?!",
+      "Штош...",
+      "Ну ты слоняра",
+      "Где Погожий?",
+    ]
+    
+    // Фразы для Погожего
+    this.pogozhiyPhrases = [
+      "НЕ ДОЛЖНЫМ ОБРАЗОМ\nОТТЕСТИРОВАННЫЙ КОД",
+      "COMPOSE\nНА ПЕТАБАЙТЫ",
+      "Я чайка ебаная",
+      "ГОВНО МОЧА",
+      "ЁБАНЫЙ ХУЙ ГНОЙ\nЗАЛУПА ПИДОРЫ",
+      "РУКИ ОТОРВАТЬ\nПИДОРАМ",
+      "ПРИКЛЮЧЕНИЕ\nНА ДВАДЦАТЬ МИНУТ",
+      "Я ВАМ НА ЕБАЛЕ\nПОПРЫГАЮ",
+    ]
+    
     // Конфигурация NPC
     const npcs = [
       { name: 'karpov', x: 150, y: 320 },
@@ -1409,9 +1425,22 @@ export default class MainScene extends Phaser.Scene {
       { name: 'mazalov', x: 950, y: 350 },
       { name: 'sergeev', x: 1300, y: 600 },
       { name: 'sindov', x: 750, y: 1000 },
+      { name: 'kozlov', x: 1150, y: 760 },    // В офисе Пхукетск (левая сторона)
+      { name: 'pogozhiy', x: 1250, y: 760 },  // В офисе Пхукетск (правая сторона)
     ]
     
     this.friendlyNPCs = []
+    
+    // Отображаемые имена для NPC
+    const displayNames = {
+      'karpov': 'karpov',
+      'rukavkov': 'rukavkov',
+      'mazalov': 'mazalov',
+      'sergeev': 'sergeev',
+      'sindov': 'sindov',
+      'kozlov': 'Козлов',
+      'pogozhiy': 'Погожий',
+    }
     
     npcs.forEach(config => {
       const npc = this.add.sprite(config.x, config.y, `npc_${config.name}`)
@@ -1419,7 +1448,8 @@ export default class MainScene extends Phaser.Scene {
       npc.setDepth(10)
       
       // Имя над NPC
-      const nameText = this.add.text(config.x, config.y - 25, config.name, {
+      const displayName = displayNames[config.name] || config.name
+      const nameText = this.add.text(config.x, config.y - 25, displayName, {
         fontFamily: 'monospace',
         fontSize: '10px',
         fill: '#ffffff',
@@ -1484,14 +1514,26 @@ export default class MainScene extends Phaser.Scene {
       npc.activePhrase.destroy()
     }
     
+    // Выбираем правильный массив фраз в зависимости от персонажа
+    let phrasesArray = this.sarcasticPhrases
+    let phraseColor = '#ffeb3b'
+    
+    if (npc.npcName === 'kozlov') {
+      phrasesArray = this.kozlovPhrases
+      phraseColor = '#ffa726' // Оранжевый для Козлова
+    } else if (npc.npcName === 'pogozhiy') {
+      phrasesArray = this.pogozhiyPhrases
+      phraseColor = '#ff1744' // Красный для Погожего
+    }
+    
     // Выбираем случайную фразу
-    const phrase = Phaser.Utils.Array.GetRandom(this.sarcasticPhrases)
+    const phrase = Phaser.Utils.Array.GetRandom(phrasesArray)
     
     // Создаём новый текст с эффектом как у Зубкова
     const phraseEffect = this.add.text(npc.x, npc.y - 50, phrase, {
       fontFamily: 'monospace',
       fontSize: '10px',
-      fill: '#ffeb3b',
+      fill: phraseColor,
       stroke: '#000000',
       strokeThickness: 2,
       align: 'center',

@@ -525,7 +525,7 @@ export default class BootScene extends Phaser.Scene {
     ctx.fillRect(12, 15, 8, 4)
     ctx.fillStyle = '#000000'
     ctx.font = '3px monospace'
-    ctx.fillText('narine', 11, 18)
+    ctx.fillText('Нарине', 11, 18)
   }
 
   generateFriendlyNPCSprite() {
@@ -535,6 +535,8 @@ export default class BootScene extends Phaser.Scene {
       { shirt: '#ff9800', name: 'mazalov' },   // Оранжевая
       { shirt: '#4caf50', name: 'sergeev' },   // Зелёная
       { shirt: '#e91e63', name: 'sindov' },    // Розовая
+      { shirt: '#8b4513', name: 'kozlov' },    // Коричневая
+      { shirt: '#ff1744', name: 'pogozhiy' },  // Красная
     ]
     
     colors.forEach(config => {
@@ -684,6 +686,9 @@ export default class BootScene extends Phaser.Scene {
     
     // Офис - вид сверху без крыши
     this.createOfficeBuilding()
+    
+    // Офис Пхукетск - вид сверху без крыши
+    this.createPhuketskBuilding()
   }
 
   createSelectelBuilding() {
@@ -1057,6 +1062,154 @@ export default class BootScene extends Phaser.Scene {
     ctx.fillText('SALO OFFICE', 110, 191)
     
     this.textures.addCanvas('building_office', canvas)
+  }
+
+  createPhuketskBuilding() {
+    const canvas = document.createElement('canvas')
+    canvas.width = 220
+    canvas.height = 200
+    const ctx = canvas.getContext('2d')
+    ctx.imageSmoothingEnabled = false
+    
+    const wallThickness = 14
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'
+    ctx.fillRect(12, 12, 208, 188)
+    
+    // Пол офиса (ковролин светлее)
+    ctx.fillStyle = '#5a6878'
+    ctx.fillRect(wallThickness, wallThickness, 220 - wallThickness*2, 200 - wallThickness*2)
+    
+    // Текстура ковролина
+    for (let i = 0; i < 500; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? '#4a5868' : '#6a7888'
+      ctx.fillRect(
+        wallThickness + Math.random() * (220 - wallThickness*2),
+        wallThickness + Math.random() * (200 - wallThickness*2),
+        2, 2
+      )
+    }
+    
+    // Рабочие столы команды 1 (слева) - Козлов
+    for (let row = 0; row < 2; row++) {
+      const dx = 25
+      const dy = 30 + row * 70
+      
+      // Стол
+      ctx.fillStyle = '#8b7355'
+      ctx.fillRect(dx, dy, 55, 30)
+      ctx.strokeStyle = '#6b5335'
+      ctx.lineWidth = 2
+      ctx.strokeRect(dx, dy, 55, 30)
+      
+      // Монитор
+      ctx.fillStyle = '#2a3a4a'
+      ctx.fillRect(dx + 15, dy + 5, 25, 16)
+      // Экран светится
+      ctx.fillStyle = '#4a8acc'
+      ctx.fillRect(dx + 17, dy + 7, 21, 12)
+      
+      // Клавиатура
+      ctx.fillStyle = '#3a3a3a'
+      ctx.fillRect(dx + 12, dy + 23, 20, 5)
+      
+      // Стул (вид сверху)
+      ctx.fillStyle = '#2a2a2a'
+      ctx.beginPath()
+      ctx.arc(dx + 27, dy + 45, 10, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#8a5a1a'
+      ctx.beginPath()
+      ctx.arc(dx + 27, dy + 45, 7, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    
+    // Рабочие столы команды 2 (справа) - Погожий
+    for (let row = 0; row < 2; row++) {
+      const dx = 140
+      const dy = 30 + row * 70
+      
+      // Стол
+      ctx.fillStyle = '#8b7355'
+      ctx.fillRect(dx, dy, 55, 30)
+      ctx.strokeStyle = '#6b5335'
+      ctx.lineWidth = 2
+      ctx.strokeRect(dx, dy, 55, 30)
+      
+      // Монитор
+      ctx.fillStyle = '#2a3a4a'
+      ctx.fillRect(dx + 15, dy + 5, 25, 16)
+      // Экран светится
+      ctx.fillStyle = '#4a8acc'
+      ctx.fillRect(dx + 17, dy + 7, 21, 12)
+      
+      // Клавиатура
+      ctx.fillStyle = '#3a3a3a'
+      ctx.fillRect(dx + 12, dy + 23, 20, 5)
+      
+      // Стул (вид сверху)
+      ctx.fillStyle = '#2a2a2a'
+      ctx.beginPath()
+      ctx.arc(dx + 27, dy + 45, 10, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#5a1a8a'
+      ctx.beginPath()
+      ctx.arc(dx + 27, dy + 45, 7, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    
+    // Кофемашина
+    ctx.fillStyle = '#2a2a2a'
+    ctx.fillRect(100, 25, 20, 25)
+    ctx.fillStyle = '#aa4444'
+    ctx.fillRect(102, 27, 16, 8)
+    
+    // Кулер с водой
+    ctx.fillStyle = '#e0e0e0'
+    ctx.fillRect(100, 60, 18, 30)
+    ctx.fillStyle = '#4a9aff'
+    ctx.fillRect(102, 62, 14, 15)
+    
+    // Принтер
+    ctx.fillStyle = '#4a4a4a'
+    ctx.fillRect(20, 160, 35, 25)
+    ctx.fillStyle = '#2a2a2a'
+    ctx.fillRect(22, 162, 31, 10)
+    
+    // Стены (кирпичные)
+    ctx.fillStyle = '#8b5a3a'
+    ctx.fillRect(0, 0, 220, wallThickness)
+    ctx.fillRect(0, 200 - wallThickness, 220, wallThickness)
+    ctx.fillRect(0, 0, wallThickness, 200)
+    ctx.fillRect(220 - wallThickness, 0, wallThickness, 200)
+    
+    // Кирпичная текстура стен
+    ctx.fillStyle = '#9b6a4a'
+    for (let i = 0; i < 16; i++) {
+      ctx.fillRect(i * 14 + 2, 2, 11, 5)
+      ctx.fillRect(i * 14 + 2, 200 - wallThickness + 2, 11, 5)
+    }
+    
+    // Дверной проём
+    ctx.fillStyle = '#5a6878'
+    ctx.fillRect(90, 200 - wallThickness, 40, wallThickness)
+    // Коврик
+    ctx.fillStyle = '#8a3a5a'
+    ctx.fillRect(92, 200 - wallThickness, 36, 5)
+    
+    // Вывеска Пхукетск
+    ctx.fillStyle = '#8a1a4a'
+    ctx.fillRect(65, 180, 90, 14)
+    ctx.strokeStyle = '#fa3a8a'
+    ctx.lineWidth = 2
+    ctx.strokeRect(65, 180, 90, 14)
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 11px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText('Пхукетск', 110, 191)
+    
+    this.textures.addCanvas('building_phuketsk', canvas)
   }
 
   generateGraveMound() {
