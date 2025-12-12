@@ -1,10 +1,7 @@
 import Phaser from 'phaser'
 import SoundManager from '../SoundManager'
 import { PlayerEntity } from '../entities/Player'
-import { ZombieManager } from '../entities/Zombie'
-import { ZubkovEntity } from '../entities/Zubkov'
-import { ZombieGirlEntity } from '../entities/ZombieGirl'
-import { FriendlyNPCManager } from '../entities/FriendlyNPC'
+import { NPCManager } from '../entities/NPCManager'
 import { MapSystem } from '../systems/MapSystem'
 import { BuildingSystem } from '../systems/BuildingSystem'
 import { ServerTransferSystem } from '../systems/ServerTransferSystem'
@@ -53,10 +50,7 @@ export default class MainScene extends Phaser.Scene {
     
     // Создаём энтити
     this.playerEntity = new PlayerEntity(this)
-    this.zombieManager = new ZombieManager(this)
-    this.zubkovEntity = new ZubkovEntity(this)
-    this.zombieGirlEntity = new ZombieGirlEntity(this)
-    this.npcManager = new FriendlyNPCManager(this)
+    this.npcManager = new NPCManager(this)
     
     // Создаём мир
     this.mapSystem.create()
@@ -70,9 +64,6 @@ export default class MainScene extends Phaser.Scene {
     this.player = this.playerEntity.create(200, 600)
     
     // Создаём врагов и NPC
-    this.zombieManager.create()
-    this.zubkovEntity.create(800, 600)
-    this.zombieGirlEntity.create(600, 400)
     this.npcManager.create()
     
     // Настройка коллизий
@@ -89,7 +80,7 @@ export default class MainScene extends Phaser.Scene {
     // Периодические события
     this.time.addEvent({
       delay: 2500,
-      callback: () => this.zombieManager.throwCrutch(),
+      callback: () => this.npcManager.throwCrutch(),
       loop: true
     })
     
@@ -121,16 +112,24 @@ export default class MainScene extends Phaser.Scene {
     
     let closestDist = Infinity
     
-    this.zombieManager.zombies.children.each(zombie => {
-      const dist = Phaser.Math.Distance.Between(zombie.x, zombie.y, this.player.x, this.player.y)
-      if (dist < closestDist && dist < 400) {
-        closestDist = dist
+    // Проверяем всех зомби
+    this.npcManager.zombies.forEach(zombie => {
+      if (zombie.sprite && zombie.sprite.active) {
+        const dist = Phaser.Math.Distance.Between(
+          zombie.sprite.x, zombie.sprite.y, 
+          this.player.x, this.player.y
+        )
+        if (dist < closestDist && dist < 400) {
+          closestDist = dist
+        }
       }
     })
     
-    if (this.zubkovEntity.sprite && this.zubkovEntity.sprite.active) {
+    // Проверяем Zubkov
+    const zubkovSprite = this.npcManager.getZubkovSprite()
+    if (zubkovSprite && zubkovSprite.active) {
       const zubkovDist = Phaser.Math.Distance.Between(
-        this.zubkovEntity.sprite.x, this.zubkovEntity.sprite.y, 
+        zubkovSprite.x, zubkovSprite.y, 
         this.player.x, this.player.y
       )
       if (zubkovDist < closestDist && zubkovDist < 400) {
@@ -182,12 +181,7 @@ export default class MainScene extends Phaser.Scene {
     // Обновляем игрока
     this.playerEntity.update()
     
-    // Обновляем врагов
-    this.zombieManager.update()
-    this.zubkovEntity.update()
-    this.zombieGirlEntity.update()
-    
-    // Обновляем NPC
+    // Обновляем всех NPC (враги и дружественные)
     this.npcManager.update()
     
     // Обновляем системы

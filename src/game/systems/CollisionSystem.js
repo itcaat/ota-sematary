@@ -7,9 +7,10 @@ export class CollisionSystem {
     const { player } = this.scene
     const { walls } = this.scene.mapSystem
     const { buildings, medkits, officeDoor } = this.scene.buildingSystem
-    const { zombies, crutches } = this.scene.zombieManager
-    const { sprite: zubkov } = this.scene.zubkovEntity
-    const { sprite: zombieGirl } = this.scene.zombieGirlEntity
+    const zombies = this.scene.npcManager.getZombieGroup()
+    const crutches = this.scene.npcManager.getCrutchGroup()
+    const zubkov = this.scene.npcManager.getZubkovSprite()
+    const zombieGirl = this.scene.npcManager.getZombieGirlSprite()
     const { servers } = this.scene.graveyardSystem
     const { beers } = this.scene.beerSystem
     const { transferServers } = this.scene.serverTransferSystem
