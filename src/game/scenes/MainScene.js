@@ -23,7 +23,9 @@ export default class MainScene extends Phaser.Scene {
     this.onServerTransferred = data.onServerTransferred || (() => {})
     this.onDrunkChange = data.onDrunkChange || (() => {})
     this.onHealthChange = data.onHealthChange || (() => {})
+    this.onTimeUpdate = data.onTimeUpdate || (() => {})
     this.gameComplete = false
+    this.gameTime = 0
   }
 
   create() {
@@ -90,6 +92,18 @@ export default class MainScene extends Phaser.Scene {
     this.time.addEvent({
       delay: 3000,
       callback: () => this.playRandomZombieSound(),
+      loop: true
+    })
+    
+    // Таймер игры (обновляется каждую секунду)
+    this.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        if (!this.gameComplete) {
+          this.gameTime++
+          this.onTimeUpdate(this.gameTime)
+        }
+      },
       loop: true
     })
   }

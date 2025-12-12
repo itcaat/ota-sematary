@@ -12,7 +12,8 @@ function App() {
     serversTransferred: 0,
     totalServersToTransfer: 6,
     drunkLevel: 0,
-    health: 3
+    health: 3,
+    gameTime: 0
   })
 
   return (
@@ -27,6 +28,7 @@ function App() {
           totalServersToTransfer={gameState.totalServersToTransfer}
           drunkLevel={gameState.drunkLevel}
           health={gameState.health}
+          gameTime={gameState.gameTime}
         />
         <Game 
           onItemCollected={(count) => setGameState(prev => ({ ...prev, collectedItems: count }))}
@@ -34,6 +36,7 @@ function App() {
           onServerTransferred={(count) => setGameState(prev => ({ ...prev, serversTransferred: count }))}
           onDrunkChange={(level) => setGameState(prev => ({ ...prev, drunkLevel: level }))}
           onHealthChange={(hp) => setGameState(prev => ({ ...prev, health: hp }))}
+          onTimeUpdate={(time) => setGameState(prev => ({ ...prev, gameTime: time }))}
           totalItems={gameState.totalItems}
         />
       </div>
