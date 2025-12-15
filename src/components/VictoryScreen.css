@@ -76,6 +76,17 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
+.victory-title.game-over {
+  color: #ff0000;
+  text-shadow: 
+    0 0 10px #ff0000,
+    0 0 20px #ff0000,
+    3px 3px 0 #000,
+    -3px -3px 0 #000,
+    3px -3px 0 #000,
+    -3px 3px 0 #000;
+}
+
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);

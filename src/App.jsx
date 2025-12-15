@@ -22,6 +22,7 @@ function App() {
     collectedItems: 0,
     totalItems: 16,
     gameComplete: false,
+    isVictory: true,
     serversTransferred: 0,
     totalServersToTransfer: 6,
     drunkLevel: 0,
@@ -84,11 +85,11 @@ function App() {
   }
 
   useEffect(() => {
-    // Сохраняем результат в Supabase при завершении игры (только для авторизованных)
-    if (gameState.gameComplete && session && !isAnonymous) {
+    // Сохраняем результат в Supabase при ПОБЕДЕ (только для авторизованных)
+    if (gameState.gameComplete && gameState.isVictory && session && !isAnonymous) {
       saveScore()
     }
-  }, [gameState.gameComplete])
+  }, [gameState.gameComplete, gameState.isVictory])
 
   // Показываем VictoryScreen при завершении игры
   const showVictory = gameState.gameComplete && gameStarted
@@ -127,6 +128,7 @@ function App() {
       collectedItems: 0,
       totalItems: 16,
       gameComplete: false,
+      isVictory: true,
       serversTransferred: 0,
       totalServersToTransfer: 6,
       drunkLevel: 0,
@@ -242,7 +244,8 @@ function App() {
         />
         <Game 
           onItemCollected={(count) => setGameState(prev => ({ ...prev, collectedItems: count }))}
-          onGameComplete={() => setGameState(prev => ({ ...prev, gameComplete: true }))}
+          onGameComplete={() => setGameState(prev => ({ ...prev, gameComplete: true, isVictory: true }))}
+          onGameOver={() => setGameState(prev => ({ ...prev, gameComplete: true, isVictory: false }))}
           onServerTransferred={(count) => setGameState(prev => ({ ...prev, serversTransferred: count }))}
           onDrunkChange={(level) => setGameState(prev => ({ ...prev, drunkLevel: level }))}
           onHealthChange={(hp) => setGameState(prev => ({ ...prev, health: hp }))}
@@ -281,18 +284,20 @@ function App() {
           </>
         )}
         
-        {/* Экран победы */}
+        {/* Экран победы/поражения */}
         {showVictory && (
           <VictoryScreen 
             userNickname={userNickname}
             gameTime={gameState.gameTime}
             isAnonymous={isAnonymous}
+            isVictory={gameState.isVictory}
             onRestart={() => {
               setGameStarted(false)
               setGameState({
                 collectedItems: 0,
                 totalItems: 16,
                 gameComplete: false,
+                isVictory: true,
                 serversTransferred: 0,
                 totalServersToTransfer: 6,
                 drunkLevel: 0,

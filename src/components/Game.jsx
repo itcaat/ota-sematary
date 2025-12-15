@@ -4,7 +4,7 @@ import BootScene from '../game/scenes/BootScene'
 import MainScene from '../game/scenes/MainScene'
 import './Game.css'
 
-const Game = ({ onItemCollected, onGameComplete, onServerTransferred, onDrunkChange, onHealthChange, onTimeUpdate, onMineCountChange, totalItems, isPaused }) => {
+const Game = ({ onItemCollected, onGameComplete, onGameOver, onServerTransferred, onDrunkChange, onHealthChange, onTimeUpdate, onMineCountChange, totalItems, isPaused }) => {
   const gameRef = useRef(null)
   const phaserGameRef = useRef(null)
 
@@ -42,6 +42,7 @@ const Game = ({ onItemCollected, onGameComplete, onServerTransferred, onDrunkCha
         mainScene.events.on('create', () => {
           mainScene.onItemCollected = onItemCollected
           mainScene.onGameComplete = onGameComplete
+          mainScene.onGameOver = onGameOver
           mainScene.onServerTransferred = onServerTransferred
           mainScene.onDrunkChange = onDrunkChange
           mainScene.onHealthChange = onHealthChange
@@ -59,6 +60,7 @@ const Game = ({ onItemCollected, onGameComplete, onServerTransferred, onDrunkCha
       phaserGameRef.current.scene.start('MainScene', {
         onItemCollected,
         onGameComplete,
+        onGameOver,
         onServerTransferred,
         onDrunkChange,
         onHealthChange,

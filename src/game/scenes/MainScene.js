@@ -21,6 +21,7 @@ export default class MainScene extends Phaser.Scene {
   init(data) {
     this.onItemCollected = data.onItemCollected || (() => {})
     this.onGameComplete = data.onGameComplete || (() => {})
+    this.onGameOver = data.onGameOver || (() => {})
     this.onServerTransferred = data.onServerTransferred || (() => {})
     this.onDrunkChange = data.onDrunkChange || (() => {})
     this.onHealthChange = data.onHealthChange || (() => {})
@@ -187,40 +188,17 @@ export default class MainScene extends Phaser.Scene {
   }
 
   gameOver() {
+    if (this.gameComplete) return
+    
     this.gameComplete = true
     this.player.setVelocity(0)
     this.player.setTint(0xff0000)
     
     this.sound.stopMusic()
     this.sound.playGameOver()
-    this.cameras.main.stopFollow()
     
-    const centerX = this.cameras.main.scrollX + this.cameras.main.width / 2
-    const centerY = this.cameras.main.scrollY + this.cameras.main.height / 2
-    
-    const gameOverText = this.add.text(centerX, centerY - 50, '💼 ТЫ ВЫГОРЕЛ 💼', {
-      fontFamily: 'monospace',
-      fontSize: '48px',
-      fill: '#ff0000',
-      stroke: '#000000',
-      strokeThickness: 6
-    }).setOrigin(0.5).setDepth(10000)
-    
-    const restartText = this.add.text(centerX, centerY + 20, 'Нажмите R чтобы попробовать снова', {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      fill: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3
-    }).setOrigin(0.5).setDepth(10000)
-    
-    this.input.keyboard.once('keydown-R', () => {
-      // Останавливаем музыку перед рестартом
-      if (this.sound) {
-        this.sound.stopMusic()
-      }
-      this.scene.restart()
-    })
+    // Вызываем callback для показа React компонента VictoryScreen
+    this.onGameOver()
   }
 
   checkAllTasksComplete() {
