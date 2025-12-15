@@ -202,6 +202,10 @@ export default class MainScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10000)
     
     this.input.keyboard.once('keydown-R', () => {
+      // Останавливаем музыку перед рестартом
+      if (this.sound) {
+        this.sound.stopMusic()
+      }
       this.scene.restart()
     })
   }
