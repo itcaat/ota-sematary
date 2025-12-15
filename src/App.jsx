@@ -5,6 +5,7 @@ import GameUI from './components/GameUI'
 import Auth from './components/Auth'
 import Leaderboard from './components/Leaderboard'
 import SetNickname from './components/SetNickname'
+import VictoryScreen from './components/VictoryScreen'
 import { supabase } from './lib/supabaseClient'
 import './App.css'
 
@@ -88,6 +89,9 @@ function App() {
       saveScore()
     }
   }, [gameState.gameComplete])
+
+  // Показываем VictoryScreen при завершении игры
+  const showVictory = gameState.gameComplete && gameStarted
 
   const saveScore = async () => {
     if (!session?.user?.id || !userNickname) return
@@ -275,6 +279,29 @@ function App() {
               <Leaderboard currentUserNickname={userNickname} />
             </div>
           </>
+        )}
+        
+        {/* Экран победы */}
+        {showVictory && (
+          <VictoryScreen 
+            userNickname={userNickname}
+            gameTime={gameState.gameTime}
+            isAnonymous={isAnonymous}
+            onRestart={() => {
+              setGameStarted(false)
+              setGameState({
+                collectedItems: 0,
+                totalItems: 16,
+                gameComplete: false,
+                serversTransferred: 0,
+                totalServersToTransfer: 6,
+                drunkLevel: 0,
+                health: 3,
+                gameTime: 0,
+                mineCount: 3
+              })
+            }}
+          />
         )}
       </div>
       <footer className="footer">

@@ -175,47 +175,8 @@ export class PrincessSystem {
       })
     }
     
-    const congrats = this.scene.add.text(
-      400,
-      250,
-      '🎉 ПОБЕДА! 🎉',
-      {
-        fontFamily: 'monospace',
-        fontSize: '64px',
-        fill: '#ffd700',
-        stroke: '#000000',
-        strokeThickness: 6
-      }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
-    
-    this.scene.tweens.add({
-      targets: congrats,
-      scale: 1.2,
-      yoyo: true,
-      repeat: -1,
-      duration: 500
-    })
-    
-    const subText = this.scene.add.text(
-      400,
-      350,
-      '🎉 Вы получаете великолепное НИЧЕГО! 🎉',
-      {
-        fontFamily: 'monospace',
-        fontSize: '28px',
-        fill: '#ff69b4',
-        stroke: '#000000',
-        strokeThickness: 3
-      }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(1000)
-    
-    this.scene.tweens.add({
-      targets: subText,
-      alpha: 0.7,
-      yoyo: true,
-      repeat: -1,
-      duration: 800
-    })
+    // Тексты победы теперь показываются в React компоненте VictoryScreen
+    // Оставляем только фейерверк и звуки
   }
 
   createFirework(x, y, color) {

@@ -130,6 +130,19 @@ export default class MainScene extends Phaser.Scene {
         this.mineSystem.placeMine(this.player.x, this.player.y)
       }
     })
+    
+    // Debug чит: клавиша "0" = мгновенная победа
+    this.debugKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ZERO)
+    this.debugKey.on('down', () => {
+      if (!this.gameComplete) {
+        console.log('🎮 Debug: Мгновенная победа активирована!')
+        // Завершаем все задания
+        this.graveyardSystem.collectedItems = this.graveyardSystem.totalItems
+        this.serverTransferSystem.serversTransferred = this.serverTransferSystem.totalServersToTransfer
+        // Запускаем победу
+        this.princessSystem.completeGame()
+      }
+    })
   }
 
   setupCamera() {

@@ -12,15 +12,30 @@ function Leaderboard({ currentUserNickname }) {
 
   const fetchScores = async () => {
     try {
+      // Получаем все результаты
       const { data, error } = await supabase
         .from('leaderboard')
         .select('*')
         .order('time', { ascending: true })
-        .limit(10)
 
       if (error) throw error
 
-      setScores(data || [])
+      // Группируем по nickname и оставляем только лучший результат для каждого игрока
+      const bestScores = {}
+      
+      data?.forEach(score => {
+        const nickname = score.nickname || score.user_id
+        if (!bestScores[nickname] || score.time < bestScores[nickname].time) {
+          bestScores[nickname] = score
+        }
+      })
+
+      // Преобразуем в массив, сортируем и берём топ-10
+      const topScores = Object.values(bestScores)
+        .sort((a, b) => a.time - b.time)
+        .slice(0, 10)
+
+      setScores(topScores)
     } catch (error) {
       console.error('Error fetching scores:', error)
     } finally {
